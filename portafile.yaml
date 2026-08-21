@@ -1,5 +1,4 @@
-# Prefer current Ubuntu LTS; fall back only to the previous Ubuntu LTS.
-source_template: ubuntu-24.04, ubuntu-22.04
+source_template: ubuntu
 name: UniStack
 hostname: unistack
 username: root
