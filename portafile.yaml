@@ -11,6 +11,26 @@ project_paths:
   - /opt/UniStack
 automation_task:
   task_name: Deploy UniStack
+  inputs:
+    - id: django_superuser_username
+      type: text
+      label: Django admin username
+      required: true
+      default: admin
+      persist_environment: true
+      description: Username for the initial Django superuser.
+    - id: django_superuser_email
+      type: text
+      label: Django admin email
+      required: true
+      persist_environment: true
+      description: Email address for the initial Django superuser.
+    - id: django_superuser_password
+      type: secret
+      label: Django admin password
+      required: true
+      persist_environment: true
+      description: Password for the initial Django superuser.
   instructions:
     - run: sudo apt-get update
     - run: sudo apt-get install -y ca-certificates curl git
@@ -21,6 +41,7 @@ automation_task:
     - run: git clone https://github.com/portacode/UniStack.git /opt/UniStack
     - run: cd /opt/UniStack && cp .env.example .env && python3 scripts/configure_env.py .env
     - run: cd /opt/UniStack && sudo docker compose up -d --build
+    - run: cd /opt/UniStack && sudo docker compose exec -T web python scripts/ensure_superuser.py
     - wait_for: https://[exposed:8000]/health/
       timeout: 1200
   expose_ports:

@@ -36,4 +36,16 @@ if public_url:
             else:
                 lines.append(f"{key}={value}")
         text = "\n".join(lines) + "\n"
+
+for key in ("DJANGO_SUPERUSER_USERNAME", "DJANGO_SUPERUSER_EMAIL", "DJANGO_SUPERUSER_PASSWORD"):
+    value = os.environ.get(key)
+    if value:
+        lines = text.splitlines()
+        for index, line in enumerate(lines):
+            if line.startswith(f"{key}="):
+                lines[index] = f"{key}={value}"
+                break
+        else:
+            lines.append(f"{key}={value}")
+        text = "\n".join(lines) + "\n"
 path.write_text(text)
