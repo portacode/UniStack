@@ -1,0 +1,25 @@
+source_template: ubuntu<=24.04, ubuntu-22.04
+name: UniStack
+hostname: unistack
+username: root
+requires_codex_connection: true
+resources:
+  disk_gib: 12
+  ram_mib: 3072
+  cpus: 2
+project_paths:
+  - /opt/UniStack
+automation_task:
+  task_name: Deploy UniStack
+  instructions:
+    - run: portacode github-setup
+    - run: git clone https://github.com/portacode/UniStack.git /opt/UniStack
+    - run: cd /opt/UniStack && cp .env.example .env && python3 scripts/configure_env.py .env
+    - run: cd /opt/UniStack && docker compose up -d --build
+    - wait_for: https://[exposed:8000]/health/
+      timeout: 1200
+  expose_ports:
+    - 8000
+  on_success: notify
+  on_failure: suggest_fixes
+
