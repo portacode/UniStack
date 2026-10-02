@@ -22,3 +22,4 @@ pytz>=2025.1
 pydub>=0.25,<1
 WeasyPrint>=65,<67
 playwright>=1.54,<2
+channels-redis>=4.2,<5

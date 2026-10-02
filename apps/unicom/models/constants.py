@@ -1,1 +1,0 @@
-channels = [('Telegram', 'Telegram'), ('WhatsApp', 'WhatsApp'), ('Internal', 'Internal'), ('Email', 'Email'), ('WebChat', 'WebChat')]

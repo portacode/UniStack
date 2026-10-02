@@ -1,4 +1,6 @@
-"""Keep the private-repository deploy button synchronized with portafile.yaml."""
+"""Generate a Portacode button; use --public for the documented raw YAML URL."""
+
+import argparse
 
 from pathlib import Path
 from urllib.parse import quote
@@ -11,10 +13,15 @@ PREFIX = "[![Deploy with Portacode]"
 
 
 def main() -> None:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--public", action="store_true", help="Use the public raw GitHub URL after making the repository public")
+    args = parser.parse_args()
     yaml_data_url = "data:text/yaml;charset=utf-8," + quote(
         PORTAFILE.read_text(encoding="utf-8"),
         safe="",
     )
+    if args.public:
+        yaml_data_url = "https://raw.githubusercontent.com/portacode/UniStack/main/portafile.yaml"
     deploy_url = "https://portacode.com/dashboard/?portafile=" + quote(
         yaml_data_url,
         safe="",

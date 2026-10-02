@@ -39,7 +39,10 @@ TEMPLATES = [{
 }]
 WSGI_APPLICATION = "config.wsgi.application"
 ASGI_APPLICATION = "config.asgi.application"
-CHANNEL_LAYERS = {"default": {"BACKEND": "channels.layers.InMemoryChannelLayer"}}
+CHANNEL_LAYERS = {"default": {
+    "BACKEND": "channels_redis.core.RedisChannelLayer",
+    "CONFIG": {"hosts": [os.environ.get("REDIS_URL", "redis://127.0.0.1:6381/0")]},
+}}
 
 DATABASES = {"default": {
     "ENGINE": "django.db.backends.postgresql",
@@ -69,4 +72,7 @@ CREDENTIAL_ENCRYPTION_KEY = os.environ.get("CREDENTIAL_ENCRYPTION_KEY", "")
 UNICOM_TINYMCE_API_KEY = os.environ.get("UNICOM_TINYMCE_API_KEY", "")
 UNICRM_AUTO_START_SCHEDULER = False
 UNICRM_DISABLE_GP_POLLER = True
-UNIBOT_DEFINITIONS_DIRS = [BASE_DIR / "data" / "definitions"]
+UNIBOT_DEFINITIONS_DIR = BASE_DIR / "data" / "definitions"
+
+# Upstream helpers instantiate OpenAI directly; keep their client defaults local.
+os.environ.setdefault("OPENAI_BASE_URL", OPENAI_BASE_URL)

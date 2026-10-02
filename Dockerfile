@@ -13,7 +13,8 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --upgrade pip && pip install -r requirements.txt
 COPY . .
-RUN chmod +x /app/entrypoint.sh
+RUN test -f apps/unicom/models/__init__.py && test -f apps/unibot/models.py \
+    && chmod +x /app/entrypoint.sh
 
 EXPOSE 8000
 ENTRYPOINT ["/app/entrypoint.sh"]
