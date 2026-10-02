@@ -40,6 +40,8 @@ if public_url:
 for key in ("DJANGO_SUPERUSER_USERNAME", "DJANGO_SUPERUSER_EMAIL", "DJANGO_SUPERUSER_PASSWORD"):
     value = os.environ.get(key)
     if value:
+        # Compose single-quoted values preserve password dollars and hashes.
+        value = "'" + value.replace("\\", "\\\\").replace("'", "\\'") + "'"
         lines = text.splitlines()
         for index, line in enumerate(lines):
             if line.startswith(f"{key}="):
@@ -49,3 +51,4 @@ for key in ("DJANGO_SUPERUSER_USERNAME", "DJANGO_SUPERUSER_EMAIL", "DJANGO_SUPER
             lines.append(f"{key}={value}")
         text = "\n".join(lines) + "\n"
 path.write_text(text)
+path.chmod(0o600)

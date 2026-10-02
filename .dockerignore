@@ -5,3 +5,6 @@ __pycache__
 .pytest_cache
 media
 staticfiles
+**/.git
+.env.*
+!.env.example

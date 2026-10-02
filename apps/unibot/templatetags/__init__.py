@@ -1,1 +1,0 @@
-# Needed for Django to discover custom template filters

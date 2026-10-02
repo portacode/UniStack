@@ -9,9 +9,20 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
-      - "127.0.0.1:5433:5432"
+      - "127.0.0.1:${DB_PORT:-5433}:5432"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U unistack -d unistack"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:${REDIS_PORT:-6381}:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
       interval: 5s
       timeout: 5s
       retries: 20
@@ -24,11 +35,23 @@ services:
       - path: .env
         required: false
     environment:
+      REDIS_URL: redis://127.0.0.1:${REDIS_PORT:-6381}/0
       DB_HOST: 127.0.0.1
-      DB_PORT: 5433
+      DB_PORT: ${DB_PORT:-5433}
+    volumes:
+      - media_data:/app/media
     depends_on:
+      redis:
+        condition: service_healthy
       db:
         condition: service_healthy
+
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health/', timeout=5)"]
+      interval: 5s
+      timeout: 10s
+      retries: 30
+      start_period: 30s
 
   worker:
     build: .
@@ -38,15 +61,21 @@ services:
       - path: .env
         required: false
     environment:
+      REDIS_URL: redis://127.0.0.1:${REDIS_PORT:-6381}/0
       DB_HOST: 127.0.0.1
-      DB_PORT: 5433
+      DB_PORT: ${DB_PORT:-5433}
       RUN_MIGRATIONS: "0"
     command: ["python", "manage.py", "run_worker"]
+    volumes:
+      - media_data:/app/media
     depends_on:
+      redis:
+        condition: service_healthy
       db:
         condition: service_healthy
       web:
-        condition: service_started
+        condition: service_healthy
 
 volumes:
   postgres_data:
+  media_data:
