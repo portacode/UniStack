@@ -8,6 +8,12 @@ resources:
   ram_mib: 3072
   cpus: 2
 inputs:
+  - id: unistack_allow_anonymous_chat
+    type: boolean
+    label: Anonymous visitors can access AI chat
+    required: false
+    default: true
+    description: Let visitors chat immediately. AI usage is charged to your connected Portacode account. Turn off to require sign-in.
   - id: project_slug
     type: text
     label: Project name

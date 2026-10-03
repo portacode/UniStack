@@ -6,10 +6,15 @@ attachments, a mobile composer, and per-conversation AI usage.
 
 [![Deploy with Portacode](https://img.shields.io/badge/Deploy_with-Portacode-176b3a?style=for-the-badge)](https://portacode.com/dashboard/?portafile=https%3A%2F%2Fraw.githubusercontent.com%2Fportacode%2FUniStack%2Fmain%2Fportafile.yaml)
 
-**Click the button, choose an optional project name, and enter your admin
-credentials.** Portacode provisions the environment and deploys everything
-automatically. When it finishes, open the app link, sign in, and start chatting.
+**Click the button, choose an optional project name and chat access, and enter your
+admin credentials.** Portacode provisions the environment and deploys everything
+automatically. When it finishes, open the app link and start chatting.
 The local Portacode AI connection is configured for you.
+
+**Anonymous visitors can access AI chat** is enabled by default. Each visitor gets
+their own session and saved conversations; signing in transfers that session's
+chat history to their account. Turn the option off to require sign-in before
+chatting. AI usage, including guest messages, uses your connected Portacode balance.
 
 Your project lives in your home directory under the name you chose, or
 `my-project` if you leave the name blank. It is marked as a Portacode project

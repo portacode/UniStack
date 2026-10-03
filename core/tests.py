@@ -1,11 +1,12 @@
 from types import SimpleNamespace
 from unittest.mock import Mock, patch
 
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.conf import settings
 from unibot.models import Bot, Tool
 
 
+@override_settings(UNISTACK_ALLOW_ANONYMOUS_CHAT=False)
 class LocalBotTests(TestCase):
     def test_default_bot_uses_local_responses(self):
         namespace = {"request": object()}
@@ -34,6 +35,7 @@ class ReadinessTests(TestCase):
         self.assertEqual(self.client.get('/health/').status_code, 200)
 
 
+@override_settings(UNISTACK_ALLOW_ANONYMOUS_CHAT=False)
 class DemoTests(TestCase):
     def setUp(self):
         from django.contrib.auth import get_user_model

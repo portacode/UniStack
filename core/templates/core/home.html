@@ -28,7 +28,7 @@
     unicom-chat-with-sidebar { position: relative; display: block; width: 100%; height: 100%; min-height: 0; --unicom-primary-color: #7c3aed; --unicom-background-color: #090c16; --unicom-message-bg-incoming: #151a2a; --unicom-border-color: #252b3d; --unicom-sidebar-bg: #0c101c; --unicom-sidebar-header-bg: #111625; --unicom-sidebar-item-hover: #151a2a; --unicom-sidebar-item-selected: linear-gradient(135deg, #6d28d9, #4f46e5); --unicom-bubble-radius: 18px; --unicom-control-radius: 12px; --unicom-content-max-width: 860px; }
     @media (max-width: 640px) { .shell { grid-template-rows: 56px minmax(0, 1fr) auto; padding: 0 6px 6px; gap: 6px; } header { padding-inline: 8px; } .subtitle { display: none; } main { border-radius: 14px; } .admin { padding: 7px 10px; } }
   </style>
-  {% if user.is_authenticated %}
+  {% if chat_enabled %}
   <script type="importmap">{"imports":{"lit":"https://cdn.jsdelivr.net/npm/lit@3.2.0/+esm","lit/directives/unsafe-html.js":"https://cdn.jsdelivr.net/npm/lit@3.2.0/directives/unsafe-html.js/+esm"}}</script>
   <script type="module" src="{% static 'unicom/webchat/webchat-with-sidebar.js' %}"></script>
   <script type="module" src="{% static 'core/chat-status.js' %}"></script>
@@ -38,10 +38,10 @@
   <div class="shell">
     <header>
       <div class="brand"><div class="mark">U</div><div><h1>UniStack</h1><p class="subtitle">{{ model }} · Local Portacode AI · Messaging &amp; CRM</p></div></div>
-      <nav>{% if user.is_authenticated %}<button class="admin" id="retry" hidden>Retry reply</button><button class="admin" id="usage">Usage</button>{% endif %}<a class="admin" href="/admin/">Admin</a></nav>
+      <nav>{% if chat_enabled %}<button class="admin" id="retry" hidden>Retry reply</button><button class="admin" id="usage">Usage</button>{% endif %}{% if not user.is_authenticated and chat_enabled %}<a class="admin" href="/admin/login/?next=/">Sign in</a>{% endif %}<a class="admin" href="/admin/">Admin</a></nav>
     </header>
     <main aria-label="UniStack chat">
-      {% if user.is_authenticated %}
+      {% if chat_enabled %}
       <unicom-chat-with-sidebar api-base="/unicom/webchat" {% if channel %}channel-id="{{ channel.pk }}"{% endif %} theme="dark" max-messages="200" auto-refresh="1" disable-websocket></unicom-chat-with-sidebar>
       <noscript>Enable JavaScript to use the chat interface.</noscript>
       {% else %}
