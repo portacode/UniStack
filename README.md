@@ -2,7 +2,8 @@
 
 A reusable Django project with UniCom messaging, UniBot AI bots, and UniCRM.
 Docker Compose runs PostgreSQL, Redis, the ASGI web application, and a bot worker.
-Redis carries WebChat events between worker and web processes.
+The AI demo uses UniCom's polished chat sidebar, mobile composer, attachments,
+and streamed Markdown replies, using the same upstream pins as `meena-erian/unistack`.
 UniCom and UniBot are public Git submodules pinned to compatible Responses API
 commits. Deployment initializes all submodules recursively.
 
@@ -31,11 +32,11 @@ cd UniStack
 ```
 
 The script generates `.env` secrets once, initializes pinned submodules, builds,
-migrates, collects static files, and waits for a healthy web service before the
+migrates, synchronizes the demo bot/channel, collects static files, and waits for a healthy web service before the
 worker starts. Re-running preserves secrets, database data, and uploaded files.
 Create an administrator with `docker compose exec web python manage.py createsuperuser`.
 Open `http://localhost:8000/` for the demo. Sign in with your administrator
-credentials to try the local AI prompt form, or open the app sections in Django
+credentials to start a conversation in WebChat, or open the app sections in Django
 admin. `/health/` reports readiness.
 
 Portacode automatically supplies the public URL during template deployment.
@@ -50,7 +51,8 @@ Web and worker use Linux host networking to reach the device-local Responses API
 at `http://127.0.0.1:61789/v1`. No external OpenAI key is needed. The default bot
 template opts into upstream Responses support and uses `PORTACODE_LLM_MODEL`.
 Override `PORTACODE_RESPONSES_BASE_URL`, `PORTACODE_RESPONSES_API_KEY`, and
-`PORTACODE_LLM_MODEL` in `.env` if necessary. Calls consume the connected account's
+`PORTACODE_LLM_MODEL` in `.env` if necessary. `PORTACODE_REASONING_EFFORT` defaults
+to `none`; set a value supported by your selected model. Calls consume the connected account's
 AI balance. Existing custom bot code is preserved; configure its
 `reply_using_llm` call with the same options as `templates/unibot/default_bot.py`.
 
@@ -65,7 +67,7 @@ host networking is not the target deployment environment.
 - `apps/unicom`, `apps/unibot`: clean upstream submodules; no build-time patches.
 - `apps/unicrm`: retained CRM snapshot.
 - `templates/`: project-level template overrides, including the default AI bot.
-- `data/definitions/`: optional bot/tool definitions for `sync_tools_and_bots`.
+- `data/definitions/`: the streaming demo bot and optional tool definitions.
 - `scripts/deploy.sh`: repeatable deployment entry point.
 
 See `VENDORED_APPS.md` for exact source provenance and branch choices. Submodule
@@ -76,12 +78,17 @@ branch tips with `--remote`.
 
 1. Click **Deploy with Portacode**, connect Codex if prompted, and choose your admin credentials.
 2. Wait for deployment to finish, then open the exposed port 8000 URL.
-3. Sign in from the landing page and send a message in **Try the local AI**.
+3. Sign in from the landing page and send a message in the chat composer.
+   Replies stream through the actual UniCom message / UniBot worker pipeline;
+   conversations survive a page reload. Use the sidebar to start another chat.
 4. Explore the UniCom, UniCRM, and UniBot admin sections. Provider channels are
    optional and require your own credentials; no messages are sent automatically.
 
-The AI demo requires an authenticated session and CSRF protection. The default
-bot uses the same local Responses API. See the [Portacode CI/CD reference](https://portacode.com/portacode-cicd-intro/)
+The chat and its HTTP APIs require authentication and CSRF protection. The UI
+uses the upstream polling projection every second, matching the reference demo's
+WebSocket-independent integration. Redis and ASGI routing remain available for
+other WebSocket integrations. Lit is loaded from jsDelivr, so browsers need access
+to that CDN. The default bot uses the local Responses API. See the [Portacode CI/CD reference](https://portacode.com/portacode-cicd-intro/)
 for template fields and the documented README deploy-button format.
 
 ## Operations
