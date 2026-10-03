@@ -1,8 +1,6 @@
-from django.conf import settings
 from django.contrib import admin
-from django.contrib.auth.decorators import login_required
 from django.urls import include, path
-from django.views.static import serve
+from core.views import protected_media
 
 urlpatterns = [
     path("admin/", admin.site.urls),
@@ -10,5 +8,5 @@ urlpatterns = [
     path("unicrm/", include("unicrm.urls")),
     path("unibot/", include("unibot.urls")),
     path("", include("core.urls")),
-    path("media/<path:path>", login_required(serve, login_url="/admin/login/"), {"document_root": settings.MEDIA_ROOT}),
+    path("media/<path:path>", protected_media),
 ]

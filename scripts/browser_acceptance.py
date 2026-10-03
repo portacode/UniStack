@@ -16,6 +16,7 @@ password = secrets.token_urlsafe(24)
 username = "polished_smoke_" + secrets.token_hex(5)
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument("--url", default="http://127.0.0.1:8000")
+parser.add_argument("--anonymous", action="store_true", help="Start as a guest, then verify history transfers at login")
 parser.add_argument("--artifacts", type=Path, default=Path(tempfile.mkdtemp(prefix="unistack-browser-")))
 args = parser.parse_args()
 args.artifacts.mkdir(parents=True, exist_ok=True)
@@ -46,6 +47,7 @@ def observe(response):
 
 streamed_texts = set()
 sent = {}
+guest_session_key = None
 try:
     django("from django.contrib.auth import get_user_model; get_user_model().objects.create_superuser(" + repr(username) + ", " + repr(username + "@example.invalid") + ", " + repr(password) + ")")
     with sync_playwright() as playwright:
@@ -53,11 +55,16 @@ try:
         page = browser.new_page(viewport={"width": 1280, "height": 900})
         page.on("response", observe)
         page.goto(args.url)
-        page.get_by_role("link", name="Sign in to chat").click()
-        page.get_by_label("Username:").fill(username)
-        page.get_by_label("Password:").fill(password)
-        page.get_by_role("button", name="Log in").click()
+        if not args.anonymous:
+            page.get_by_role("link", name="Sign in to chat").click()
+            page.get_by_label("Username:").fill(username)
+            page.get_by_label("Password:").fill(password)
+            page.get_by_role("button", name="Log in").click()
         page.locator("textarea").wait_for(timeout=30000)
+        if args.anonymous:
+            page.wait_for_function("document.cookie.includes('csrftoken=')")
+            assert page.request.get(args.url + "/unicom/webchat/chats/").ok
+            guest_session_key = next(cookie["value"] for cookie in page.context.cookies() if cookie["name"] == "sessionid")
         prompt = "Write a 200-word explanation of how a Django application, PostgreSQL, and a background AI worker work together. Finish with the exact phrase STREAMING DEMO VERIFIED."
         page.locator("textarea").fill(prompt)
         page.locator("textarea").press("Enter")
@@ -105,9 +112,26 @@ try:
         page.wait_for_function("document.querySelector('unicom-chat-with-sidebar').messages.filter(message => message.is_outgoing).at(-1)?.stream_status === 'finished'")
         ledger = page.request.get(args.url + "/api/ai/usage/", params={"chat_id": chat_id}).json()
         assert ledger["totals"]["attempts"] == 2 and all(attempt["status"] == "completed" for attempt in ledger["attempts"]), ledger
+        if args.anonymous:
+            messages = page.request.get(args.url + "/unicom/webchat/messages/", params={"chat_id": chat_id}).json()["messages"]
+            media_url = next(message["media_url"] for message in messages if message.get("media_url"))
+            attachment = page.request.get(args.url + media_url)
+            assert attachment.ok, attachment.status
+            attachment.dispose()
+            stranger = browser.new_context()
+            assert stranger.request.get(args.url + "/unicom/webchat/messages/", params={"chat_id": chat_id}).status == 404
+            assert stranger.request.get(args.url + media_url).status == 404
+            stranger.close()
+            page.get_by_role("link", name="Sign in", exact=True).click()
+            page.get_by_label("Username:").fill(username)
+            page.get_by_label("Password:").fill(password)
+            page.get_by_role("button", name="Log in").click()
+            page.locator("textarea").wait_for(timeout=30000)
+            page.wait_for_function("document.querySelector('unicom-chat-with-sidebar').messages.some(message => message.text && message.text.includes('IMAGE DEMO VERIFIED'))")
+            assert page.request.get(args.url + "/api/ai/usage/", params={"chat_id": chat_id}).json()["totals"]["attempts"] == 2
         page.remove_listener("response", observe)
         browser.close()
-        print(json.dumps({"intermediate_reply_versions": len(streamed_texts), "request": "COMPLETED", "reconnect": "passed", "mobile": "passed", "image": "passed", "usage_attempts": ledger["totals"]["attempts"], "artifacts": str(args.artifacts)}))
+        print(json.dumps({"intermediate_reply_versions": len(streamed_texts), "request": "COMPLETED", "reconnect": "passed", "mobile": "passed", "image": "passed", "guest_login_transfer": "passed" if args.anonymous else "not tested", "usage_attempts": ledger["totals"]["attempts"], "artifacts": str(args.artifacts)}))
 finally:
     # Remove only the temporary account's data; retain screenshots outside the repo.
     django(f"""
@@ -116,11 +140,13 @@ from unicom.models import Account, AccountChat, Chat, Message
 from core.models import ModelInvocation
 user = get_user_model().objects.filter(username={username!r}).first()
 if user:
-    account_id = f'webchat_user_{{user.pk}}'
-    chats = list(AccountChat.objects.filter(account_id=account_id).values_list('chat_id', flat=True))
+    account_ids = [f'webchat_user_{{user.pk}}']
+    if {guest_session_key!r}:
+        account_ids.append('webchat_guest_' + {guest_session_key!r})
+    chats = list(AccountChat.objects.filter(account_id__in=account_ids).values_list('chat_id', flat=True))
     ModelInvocation.objects.filter(chat_id__in=chats).delete()
     Chat.objects.filter(pk__in=chats).delete()
     Message.objects.filter(user=user).update(user=None)
-    Account.objects.filter(pk=account_id).delete()
+    Account.objects.filter(pk__in=account_ids).delete()
     user.delete()
 """)

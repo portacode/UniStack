@@ -3,27 +3,60 @@ from django.conf import settings
 from django.db import connection
 from django.db import transaction
 from django.db.models import Sum, Count, Q
-from django.contrib.auth.decorators import login_required
-from django.http import JsonResponse
+from django.contrib.auth.decorators import user_passes_test
+from django.http import JsonResponse, Http404
+from django.views.static import serve
 from django.shortcuts import render
 from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import ensure_csrf_cookie
-from unicom.models import Channel, Request
+from unicom.models import Channel, Request, Message
 from unicom.services.webchat.save_webchat_message import save_webchat_message
 from unicom.models import AccountChat
 from core.models import ModelInvocation
 
+chat_access_required = user_passes_test(
+    lambda user: user.is_authenticated or settings.UNISTACK_ALLOW_ANONYMOUS_CHAT,
+    login_url="/admin/login/",
+)
+
+
+def webchat_account_id(request):
+    if request.user.is_authenticated:
+        return f"webchat_user_{request.user.pk}"
+    return f"webchat_guest_{request.session.session_key}" if request.session.session_key else None
+
+
+@chat_access_required
+def protected_media(request, path):
+    # Guest attachments need the same conversation ownership checks as text.
+    webchat_files = Message.objects.filter(media=path, platform="WebChat")
+    # Keep administrative inspection and existing non-chat CRM media working.
+    if request.user.is_authenticated and (
+        request.user.is_staff or not webchat_files.exists()
+    ):
+        return serve(request, path, document_root=settings.MEDIA_ROOT)
+    account_id = webchat_account_id(request)
+    if not account_id or not webchat_files.filter(
+        chat__accountchat__account_id=account_id,
+    ).exists():
+        raise Http404("Attachment not found")
+    return serve(request, path, document_root=settings.MEDIA_ROOT)
+
+
 @ensure_csrf_cookie
 def home(request):
     channel = Channel.objects.filter(name="UniStack WebChat", platform="WebChat").first()
-    return render(request, "core/home.html", {"model": settings.PORTACODE_LLM_MODEL, "channel": channel})
+    return render(request, "core/home.html", {
+        "model": settings.PORTACODE_LLM_MODEL, "channel": channel,
+        "chat_enabled": request.user.is_authenticated or settings.UNISTACK_ALLOW_ANONYMOUS_CHAT,
+    })
 
 def health(request):
     with connection.cursor() as cursor:
         cursor.execute("SELECT 1")
     return JsonResponse({"status": "ok", "stack": ["django", "unicom", "unicrm", "unibot"]})
 
-@login_required(login_url="/admin/login/")
+@chat_access_required
 @require_POST
 def ai_respond(request):
     try:
@@ -46,7 +79,8 @@ def ai_respond(request):
         return JsonResponse({"error": "The demo bot/channel has not been synchronized."}, status=503)
     try:
         message = save_webchat_message(
-            channel, {"text": prompt, "chat_id": payload.get("chat_id")}, request, user=request.user,
+            channel, {"text": prompt, "chat_id": payload.get("chat_id")}, request,
+            user=request.user if request.user.is_authenticated else None,
         )
     except ValueError:
         return JsonResponse({"error": "The requested chat is unavailable."}, status=400)
@@ -60,7 +94,7 @@ def ai_respond(request):
     }, status=202)
 
 
-@login_required(login_url="/admin/login/")
+@chat_access_required
 @require_POST
 def retry_failed(request):
     try:
@@ -70,9 +104,12 @@ def retry_failed(request):
         chat_id = None
     if not isinstance(chat_id, str):
         return JsonResponse({"error": "chat_id is required."}, status=400)
+    account_id = webchat_account_id(request)
+    if not account_id:
+        return JsonResponse({"error": "Chat not found."}, status=404)
     with transaction.atomic():
         failed = Request.objects.select_for_update().filter(
-            account_id=f"webchat_user_{request.user.pk}", message__chat_id=chat_id,
+            account_id=account_id, message__chat_id=chat_id,
         ).order_by("-created_at").first()
         if failed is None:
             return JsonResponse({"error": "Chat not found."}, status=404)
@@ -88,10 +125,10 @@ def retry_failed(request):
     return JsonResponse({"status": "queued", "request_id": str(failed.pk)}, status=202)
 
 
-@login_required(login_url="/admin/login/")
+@chat_access_required
 def usage(request):
     chat_id = request.GET.get("chat_id")
-    if not AccountChat.objects.filter(chat_id=chat_id, account_id=f"webchat_user_{request.user.pk}").exists():
+    if not AccountChat.objects.filter(chat_id=chat_id, account_id=webchat_account_id(request)).exists():
         return JsonResponse({"error": "Chat not found."}, status=404)
     invocations = ModelInvocation.objects.filter(chat_id=chat_id)
     totals = invocations.aggregate(

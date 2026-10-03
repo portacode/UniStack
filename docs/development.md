@@ -2,6 +2,21 @@
 
 These notes are for maintainers. The deploy button handles initial setup.
 
+## Chat access
+
+The deployment input is written to `.env` as `UNISTACK_ALLOW_ANONYMOUS_CHAT` and
+applies to the chat UI, WebChat API, AI actions, and conversation attachments.
+New demo deployments default to `true`; existing environments without this
+setting retain sign-in requirements. Rerunning deployment preserves the saved
+choice unless an explicit input overrides it.
+
+UniCom owns guest sessions, chat memberships, persisted replies, and history
+transfer. The template captures the session key before Django rotates it at login
+and calls UniCom's `migrate_guest_to_user` helper. A future signup view should use
+Django's `login(request, user)` so the same hook runs. The demo provides admin
+login; it does not provide public signup. Guest history belongs to the browser
+session until login, so clearing cookies loses access to that guest history.
+
 ## Local AI
 
 Web and worker use Linux host networking to reach the device-local Responses API

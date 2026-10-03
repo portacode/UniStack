@@ -37,6 +37,16 @@ if public_url:
                 lines.append(f"{key}={value}")
         text = "\n".join(lines) + "\n"
 
+anonymous = os.environ.get("UNISTACK_ALLOW_ANONYMOUS_CHAT")
+if anonymous is not None:
+    normalized = anonymous.strip().lower()
+    if normalized not in {"true", "false", "1", "0", "yes", "no"}:
+        raise ValueError("UNISTACK_ALLOW_ANONYMOUS_CHAT must be a boolean")
+    value = "true" if normalized in {"true", "1", "yes"} else "false"
+    lines = [line for line in text.splitlines() if not line.startswith("UNISTACK_ALLOW_ANONYMOUS_CHAT=")]
+    lines.append(f"UNISTACK_ALLOW_ANONYMOUS_CHAT={value}")
+    text = "\n".join(lines) + "\n"
+
 for key in ("DJANGO_SUPERUSER_USERNAME", "DJANGO_SUPERUSER_EMAIL", "DJANGO_SUPERUSER_PASSWORD"):
     value = os.environ.get(key)
     if value:

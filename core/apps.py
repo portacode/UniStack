@@ -6,6 +6,7 @@ class CoreConfig(AppConfig):
 
 
     def ready(self):
+        from core import signals  # noqa: F401
         # Upstream assumes apps live at BASE_DIR/unibot. Use Django's template
         # discovery for this project's apps/ layout and project overrides.
         from django.template.loader import get_template
