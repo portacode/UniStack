@@ -23,6 +23,7 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "core.middleware.WebChatAccessMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "reversion.middleware.RevisionMiddleware",
@@ -68,6 +69,7 @@ DJANGO_PUBLIC_ORIGIN = os.environ.get("DJANGO_PUBLIC_ORIGIN", "http://localhost:
 OPENAI_API_KEY = os.environ.get("PORTACODE_RESPONSES_API_KEY", "portacode-local")
 OPENAI_BASE_URL = os.environ.get("PORTACODE_RESPONSES_BASE_URL", "http://127.0.0.1:61789/v1")
 PORTACODE_LLM_MODEL = os.environ.get("PORTACODE_LLM_MODEL", "gpt-5.6-terra")
+PORTACODE_REASONING_EFFORT = os.environ.get("PORTACODE_REASONING_EFFORT", "none")
 CREDENTIAL_ENCRYPTION_KEY = os.environ.get("CREDENTIAL_ENCRYPTION_KEY", "")
 UNICOM_TINYMCE_API_KEY = os.environ.get("UNICOM_TINYMCE_API_KEY", "")
 UNICRM_AUTO_START_SCHEDULER = False

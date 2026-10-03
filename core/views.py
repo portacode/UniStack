@@ -5,10 +5,14 @@ from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.shortcuts import render
 from django.views.decorators.http import require_POST
+from django.views.decorators.csrf import ensure_csrf_cookie
 from openai import OpenAI, OpenAIError
 
+@ensure_csrf_cookie
 def home(request):
-    return render(request, "core/home.html", {"model": settings.PORTACODE_LLM_MODEL})
+    from unicom.models import Channel
+    channel = Channel.objects.filter(name="UniStack WebChat", platform="WebChat").first()
+    return render(request, "core/home.html", {"model": settings.PORTACODE_LLM_MODEL, "channel": channel})
 
 def health(request):
     with connection.cursor() as cursor:

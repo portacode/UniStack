@@ -13,7 +13,7 @@ class LocalBotTests(TestCase):
         bot = SimpleNamespace(reply_using_llm=Mock(return_value="reply"))
         client_factory = Mock()
         with patch.dict(namespace, OpenAI=client_factory) as configured:
-            result = configured["handle_incoming_message"]("message", bot, [])
+            result = configured["handle_incoming_message"](SimpleNamespace(platform="Email"), bot, [])
         self.assertEqual(result, "reply")
         options = bot.reply_using_llm.call_args.kwargs
         self.assertEqual(options["api_mode"], "responses")
@@ -24,6 +24,18 @@ class LocalBotTests(TestCase):
 
     def test_upstream_tool_template_is_discoverable(self):
         self.assertIn("tool_definition", Tool.get_default_code())
+
+    def test_webchat_default_streams_with_upstream_sink(self):
+        namespace = {"request": object()}
+        exec(Bot.get_default_code(), namespace)
+        message = SimpleNamespace(platform="WebChat")
+        bot = SimpleNamespace(reply_using_llm=Mock())
+        with patch.dict(namespace, OpenAI=Mock(), WebChatMessageStreamSink=Mock()) as configured:
+            configured["handle_incoming_message"](message, bot, [])
+            configured["WebChatMessageStreamSink"].assert_called_once_with(message)
+        options = bot.reply_using_llm.call_args.kwargs
+        self.assertTrue(options["stream"])
+        self.assertFalse(options["responses_options"]["store"])
 
     def test_anonymous_ai_requires_login(self):
         self.assertEqual(self.client.post('/api/ai/respond/', {"prompt": "hello"}).status_code, 302)
@@ -41,12 +53,12 @@ class DemoTests(TestCase):
 
     def test_public_home_shows_sign_in(self):
         response = self.client.get('/')
-        self.assertContains(response, 'Sign in to try AI')
-        self.assertNotContains(response, 'id="ai-form"')
+        self.assertContains(response, 'Sign in to chat')
+        self.assertNotContains(response, '<unicom-chat-with-sidebar')
 
     def test_signed_in_home_shows_form(self):
         self.client.force_login(self.user)
-        self.assertContains(self.client.get('/'), 'id="ai-form"')
+        self.assertContains(self.client.get('/'), '<unicom-chat-with-sidebar')
 
     @patch('core.views.OpenAI')
     def test_demo_uses_local_responses(self, factory):
@@ -67,3 +79,30 @@ class DemoTests(TestCase):
         client = Client(enforce_csrf_checks=True)
         client.force_login(self.user)
         self.assertEqual(client.post('/api/ai/respond/', {'prompt': 'Hello'}, content_type='application/json').status_code, 403)
+
+    def test_webchat_requires_login(self):
+        self.assertEqual(self.client.get('/unicom/webchat/chats/').status_code, 401)
+        self.assertEqual(self.client.post('/unicom/webchat/send/').status_code, 401)
+
+    def test_webchat_requires_csrf(self):
+        from django.test import Client
+        client = Client(enforce_csrf_checks=True)
+        client.force_login(self.user)
+        self.assertEqual(client.post('/unicom/webchat/send/').status_code, 403)
+
+
+class BootstrapTests(TestCase):
+    def test_bootstrap_creates_ready_channel_and_bot_once(self):
+        from django.core.management import call_command
+        from unicom.models import Channel
+        call_command("sync_unistack", verbosity=0)
+        bot = Bot.objects.get(name="unistack")
+        channel = Channel.objects.get(name="UniStack WebChat")
+        self.assertTrue(channel.active)
+        self.assertTrue(bot.request_category.is_public)
+        self.assertTrue(bot.request_category.is_active)
+        self.assertEqual(list(bot.request_category.allowed_channels.all()), [channel])
+        self.assertIn('api_mode="responses"', bot.code)
+        call_command("sync_unistack", verbosity=0)
+        self.assertEqual(Bot.objects.filter(name="unistack").count(), 1)
+        self.assertEqual(Channel.objects.filter(name="UniStack WebChat").count(), 1)
