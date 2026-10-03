@@ -1,6 +1,7 @@
 import os
 import sys
 from pathlib import Path
+from urllib.parse import urlparse
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(BASE_DIR / "apps"))
@@ -9,6 +10,12 @@ SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", "unsafe-development-only")
 DEBUG = os.environ.get("DJANGO_DEBUG", "false").lower() in {"1", "true", "yes"}
 ALLOWED_HOSTS = [x.strip() for x in os.environ.get("DJANGO_ALLOWED_HOSTS", "*").split(",") if x.strip()]
 CSRF_TRUSTED_ORIGINS = [x.strip() for x in os.environ.get("DJANGO_CSRF_TRUSTED_ORIGINS", "").split(",") if x.strip()]
+PUBLIC_URL = os.environ.get("PORTACODE_PRIMARY_PUBLIC_URL", "").strip().rstrip("/")
+PUBLIC_HOST = os.environ.get("PORTACODE_PRIMARY_PUBLIC_HOST", "").strip() or urlparse(PUBLIC_URL).hostname
+if PUBLIC_HOST and PUBLIC_HOST not in ALLOWED_HOSTS:
+    ALLOWED_HOSTS.append(PUBLIC_HOST)
+if PUBLIC_URL and PUBLIC_URL not in CSRF_TRUSTED_ORIGINS:
+    CSRF_TRUSTED_ORIGINS.append(PUBLIC_URL)
 
 INSTALLED_APPS = [
     "django.contrib.admin", "django.contrib.auth", "django.contrib.contenttypes",
@@ -65,11 +72,13 @@ MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-DJANGO_PUBLIC_ORIGIN = os.environ.get("DJANGO_PUBLIC_ORIGIN", "http://localhost:8000").rstrip("/")
+DJANGO_PUBLIC_ORIGIN = PUBLIC_URL or os.environ.get("DJANGO_PUBLIC_ORIGIN", "http://localhost:8000").rstrip("/")
 OPENAI_API_KEY = os.environ.get("PORTACODE_RESPONSES_API_KEY", "portacode-local")
 OPENAI_BASE_URL = os.environ.get("PORTACODE_RESPONSES_BASE_URL", "http://127.0.0.1:61789/v1")
 PORTACODE_LLM_MODEL = os.environ.get("PORTACODE_LLM_MODEL", "gpt-5.6-terra")
 PORTACODE_REASONING_EFFORT = os.environ.get("PORTACODE_REASONING_EFFORT", "none")
+PORTACODE_RESPONSE_TIMEOUT = float(os.environ.get("PORTACODE_RESPONSE_TIMEOUT", "90"))
+UNISTACK_MAX_TOOL_CALLS = int(os.environ.get("UNISTACK_MAX_TOOL_CALLS", "8"))
 CREDENTIAL_ENCRYPTION_KEY = os.environ.get("CREDENTIAL_ENCRYPTION_KEY", "")
 UNICOM_TINYMCE_API_KEY = os.environ.get("UNICOM_TINYMCE_API_KEY", "")
 UNICRM_AUTO_START_SCHEDULER = False
