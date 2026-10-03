@@ -36,6 +36,8 @@ services:
         required: false
     environment:
       REDIS_URL: redis://127.0.0.1:${REDIS_PORT:-6381}/0
+      PORTACODE_PRIMARY_PUBLIC_URL: ${PORTACODE_PRIMARY_PUBLIC_URL:-}
+      PORTACODE_PRIMARY_PUBLIC_HOST: ${PORTACODE_PRIMARY_PUBLIC_HOST:-}
       DB_HOST: 127.0.0.1
       DB_PORT: ${DB_PORT:-5433}
     volumes:
@@ -62,6 +64,8 @@ services:
         required: false
     environment:
       REDIS_URL: redis://127.0.0.1:${REDIS_PORT:-6381}/0
+      PORTACODE_PRIMARY_PUBLIC_URL: ${PORTACODE_PRIMARY_PUBLIC_URL:-}
+      PORTACODE_PRIMARY_PUBLIC_HOST: ${PORTACODE_PRIMARY_PUBLIC_HOST:-}
       DB_HOST: 127.0.0.1
       DB_PORT: ${DB_PORT:-5433}
       RUN_MIGRATIONS: "0"

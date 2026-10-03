@@ -12,9 +12,26 @@ moving branch tips. Neither upstream submodule is patched.
 
 The chat shell and source-defined bot follow `meena-erian/unistack`'s integration.
 UniCom provides the conversation sidebar, Markdown, attachments, mobile composer,
-and incremental text rendering. UniBot uses its Responses streaming API with the
-upstream WebChatMessageStreamSink. UniStack adds project-level authentication,
+and incremental text rendering. UniStack uses the upstream
+WebChatMessageStreamSink. UniStack adds project-level authentication,
 CSRF protection, automatic channel setup, and the local client/model configuration.
+
+## Responses tools without changing the UI pins
+
+The selected UniBot Responses implementation rejects tools. To retain the polished
+UI commits while supporting tool calls, `core/integrations/upstream_responses.py`
+is an unchanged copy of public UniCom's `services/llm/responses.py` from commit
+`45e14a81ada15f922a24b9b20703d2c9e6c747e2`, branch
+`feature/chat-boundaries-20260912`. This single frozen adapter is the explicit
+exception to keeping upstream source solely in submodules. Review it against
+that source when updating; no other upstream source is copied or patched.
+
+`core/integrations/bot.py` bridges its normalized events to UniCom's persisted
+WebChat projection and reuses UniBot tool definitions and UniCom ToolCall/child
+Request persistence. `core/integrations/client.py` observes provider outcome and
+usage, disables SDK retries, and closes each stream. Project-owned invocation
+records retain per-attempt usage and failures; no alternate conversation store
+or custom continuation worker is introduced.
 
 ## Upgrade from the previous pins
 
