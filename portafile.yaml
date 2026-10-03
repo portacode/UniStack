@@ -7,9 +7,13 @@ resources:
   disk_gib: 12
   ram_mib: 3072
   cpus: 2
-project_paths:
-  - /opt/UniStack
 inputs:
+  - id: project_slug
+    type: text
+    label: Project name
+    required: false
+    default: my-project
+    description: Optional folder name, such as my-app. Use lowercase letters, numbers, and hyphens.
   - id: django_superuser_username
     type: text
     label: Django admin username
@@ -31,11 +35,13 @@ automation_task:
   instructions:
     - run: docker compose version
     - run: portacode github-setup
-    - run: git clone --recurse-submodules https://github.com/portacode/UniStack.git /opt/UniStack
-    - run: cd /opt/UniStack && ./scripts/deploy.sh
-    - run: cd /opt/UniStack && docker compose exec -T web python scripts/ensure_superuser.py
+    - run: git clone --recurse-submodules https://github.com/portacode/UniStack.git "$HOME/.unistack-template" && python3 "$HOME/.unistack-template/scripts/create_project.py"
+    - run: cd "$HOME/${PROJECT_SLUG:-my-project}" && ./scripts/deploy.sh
+    - run: cd "$HOME/${PROJECT_SLUG:-my-project}" && docker compose exec -T web python scripts/ensure_superuser.py
     - wait_for: https://[exposed:8000]/health/
       timeout: 1200
+    - run: cd "$HOME/${PROJECT_SLUG:-my-project}" && test ! -e .git && pwd -P
+      register_project: true
   expose_ports:
     - 8000
   on_success: notify
