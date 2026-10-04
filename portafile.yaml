@@ -4,9 +4,9 @@ hostname: unistack
 username: root
 requires_codex_connection: true
 resources:
-  disk_gib: 12
-  ram_mib: 3072
-  cpus: 2
+  disk_gib: 7
+  ram_mib: 1024
+  cpus: 0.5
 inputs:
   - id: unistack_allow_anonymous_chat
     type: boolean

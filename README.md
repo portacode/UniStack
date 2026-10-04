@@ -16,6 +16,9 @@ admin credentials.** Portacode provisions the environment and deploys everything
 automatically. When it finishes, open the app link and start chatting.
 The local Portacode AI connection is configured for you.
 
+The [deployment template](portafile.yaml) requests **0.5 CPU, 1 GiB RAM, and
+7 GiB disk**. Increase these allocations as your workload and stored data grow.
+
 **Anonymous visitors can access AI chat** is enabled by default. Each visitor gets
 their own session and saved conversations; signing in transfers that session's
 chat history to their account. Turn the option off to require sign-in before
