@@ -1,8 +1,8 @@
 # UniStack
 
 Build a custom AI application on Django with a working chat UI, Python bots and
-tools, persistent messaging, and CRM. UniStack combines **UniCom**, **UniBot**, and
-**UniCRM** in a deployable project you can extend with your own models, workflows,
+tools and persistent messaging. UniStack combines **UniCom** and **UniBot**
+in a deployable project you can extend with your own models, workflows,
 integrations, and frontend.
 
 Use it as a foundation for customer assistants, internal copilots, or agents that
@@ -11,9 +11,9 @@ see [tenant isolation and access](#tenant-isolation-and-access) for the exact sc
 
 [![Deploy with Portacode](https://img.shields.io/badge/Deploy_with-Portacode-176b3a?style=for-the-badge)](https://portacode.com/dashboard/?portafile=https%3A%2F%2Fraw.githubusercontent.com%2Fportacode%2FUniStack%2Fmain%2Fportafile.yaml)
 
-**Click the button, choose an optional project name and chat access, and enter your
+**Click the button, choose your app name, optional logo, brand colors and chat access, and enter your
 admin credentials.** Portacode provisions the environment and deploys everything
-automatically. When it finishes, open the app link and start chatting.
+automatically. When it finishes, open the app link and choose **Assistant**.
 The local Portacode AI connection is configured for you.
 
 The [deployment template](portafile.yaml) requests **0.5 CPU, 1 GiB RAM, and
@@ -32,6 +32,12 @@ upstream app repositories retain their history.
 
 ## What is included
 
+The project starts with a clean, responsive website shell, desktop/mobile
+navigation, lazy-loaded assistant, branded sign-in, and one shared branding
+configuration for the site and UniCom chat. It contains no UniStack marketing
+banners. See [the application guide](docs/application-guide.md) for customization
+and first-build acceptance criteria.
+
 | Area | Capabilities |
 | --- | --- |
 | AI chat | Streamed Markdown replies, saved conversations and sidebar, image attachments, mobile composer, and conversation history supplied to the model. |
@@ -39,7 +45,7 @@ upstream app repositories retain their history.
 | Usage and failures | Per-conversation token usage and per-attempt model records in Django admin. Incomplete streams retain partial replies; eligible failed turns can be retried when no tools have run. |
 | Messaging — UniCom | Accounts, channels, chat memberships, messages, attachments, and background requests. WebChat is configured on deployment; Email, Telegram, and WhatsApp integrations require provider setup. |
 | Bot framework — UniBot | Source-defined bots/tools synchronized into the database, Django admin management, and account-scoped encrypted credentials with credential setup flows. |
-| CRM — UniCRM | Companies, contacts, mailing lists, subscriptions, programmable segments, communication templates, campaigns, and delivery/engagement views. Campaign delivery needs channel and scheduler configuration. |
+| Optional CRM integration | Existing installations providing UniCRM under `apps/unicrm` retain their CRM routes and models. UniCRM is not distributed in this public template. |
 | Application stack | Django, PostgreSQL, Redis, Docker Compose web/worker services, persistent database/media volumes, and a health endpoint. The supplied deployment targets a Linux Portacode device. |
 
 The default AI connection uses the device-local Portacode Responses API and your

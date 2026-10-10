@@ -1,4 +1,5 @@
-const chat = document.querySelector('unicom-chat-with-sidebar');
+export function mountStatus(main) {
+const chat = main.querySelector('unicom-chat-with-sidebar');
 const retry = document.getElementById('retry');
 const usage = document.getElementById('usage');
 const status = document.getElementById('chat-status');
@@ -41,7 +42,9 @@ usage.addEventListener('click', async () => {
   }
 });
 
-setInterval(() => {
+const timer = setInterval(() => {
   const replies = (chat.messages || []).filter(message => message.is_outgoing);
   retry.hidden = replies.at(-1)?.stream_status !== 'failed';
 }, 1000);
+return () => clearInterval(timer);
+}

@@ -16,7 +16,7 @@ from core.models import ModelInvocation
 
 chat_access_required = user_passes_test(
     lambda user: user.is_authenticated or settings.UNISTACK_ALLOW_ANONYMOUS_CHAT,
-    login_url="/admin/login/",
+    login_url="/accounts/login/",
 )
 
 
@@ -45,8 +45,14 @@ def protected_media(request, path):
 
 @ensure_csrf_cookie
 def home(request):
+    return render(request, "core/home.html", {"page_title": "Overview"})
+
+
+@ensure_csrf_cookie
+def assistant(request):
     channel = Channel.objects.filter(name="UniStack WebChat", platform="WebChat").first()
-    return render(request, "core/home.html", {
+    return render(request, "core/assistant.html", {
+        "page_title": "Assistant",
         "model": settings.PORTACODE_LLM_MODEL, "channel": channel,
         "chat_enabled": request.user.is_authenticated or settings.UNISTACK_ALLOW_ANONYMOUS_CHAT,
     })
@@ -54,7 +60,7 @@ def home(request):
 def health(request):
     with connection.cursor() as cursor:
         cursor.execute("SELECT 1")
-    return JsonResponse({"status": "ok", "stack": ["django", "unicom", "unicrm", "unibot"]})
+    return JsonResponse({"status": "ok", "stack": ["django", "unicom", "unibot"] + (["unicrm"] if "unicrm" in settings.INSTALLED_APPS else [])})
 
 @chat_access_required
 @require_POST

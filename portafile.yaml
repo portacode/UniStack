@@ -8,6 +8,32 @@ resources:
   ram_mib: 1024
   cpus: 0.5
 inputs:
+  - id: brand_name
+    type: text
+    label: App name
+    required: false
+    default: Workspace
+  - id: brand_tagline
+    type: text
+    label: Short description
+    required: false
+    default: A place to get things done.
+  - id: brand_logo
+    type: image
+    label: Logo (optional)
+    required: false
+    accept: image/png,image/jpeg,image/webp
+    description: PNG, JPEG or WebP, up to 5 MiB. Shared by the website and assistant.
+  - id: brand_primary
+    type: color
+    label: Primary brand color
+    required: false
+    default: '#3157d5'
+  - id: brand_accent
+    type: color
+    label: Accent brand color
+    required: false
+    default: '#0f766e'
   - id: unistack_allow_anonymous_chat
     type: boolean
     label: Anonymous visitors can access AI chat

@@ -17,6 +17,7 @@ username = "polished_smoke_" + secrets.token_hex(5)
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument("--url", default="http://127.0.0.1:8000")
 parser.add_argument("--anonymous", action="store_true", help="Start as a guest, then verify history transfers at login")
+parser.add_argument("--management-container", help="Optional isolated review container with the same database")
 parser.add_argument("--artifacts", type=Path, default=Path(tempfile.mkdtemp(prefix="unistack-browser-")))
 args = parser.parse_args()
 args.artifacts.mkdir(parents=True, exist_ok=True)
@@ -24,8 +25,9 @@ root = Path(__file__).resolve().parent.parent
 
 
 def django(code):
+    command = ["docker", "exec", args.management_container] if args.management_container else ["docker", "compose", "exec", "-T", "web"]
     result = subprocess.run(
-        ["docker", "compose", "exec", "-T", "web", "python", "manage.py", "shell", "-c", code],
+        command + ["python", "manage.py", "shell", "-c", code],
         check=True, capture_output=True, text=True, cwd=root,
     )
     return result.stdout
@@ -54,12 +56,12 @@ try:
         browser = playwright.chromium.launch(headless=True)
         page = browser.new_page(viewport={"width": 1280, "height": 900})
         page.on("response", observe)
-        page.goto(args.url)
+        page.goto(args.url + '/assistant/')
         if not args.anonymous:
             page.get_by_role("link", name="Sign in to chat").click()
-            page.get_by_label("Username:").fill(username)
-            page.get_by_label("Password:").fill(password)
-            page.get_by_role("button", name="Log in").click()
+            page.get_by_label("Username", exact=True).fill(username)
+            page.get_by_label("Password", exact=True).fill(password)
+            page.get_by_role("button", name="Sign in", exact=True).click()
         page.locator("textarea").wait_for(timeout=30000)
         if args.anonymous:
             page.wait_for_function("document.cookie.includes('csrftoken=')")
@@ -123,9 +125,9 @@ try:
             assert stranger.request.get(args.url + media_url).status == 404
             stranger.close()
             page.get_by_role("link", name="Sign in", exact=True).click()
-            page.get_by_label("Username:").fill(username)
-            page.get_by_label("Password:").fill(password)
-            page.get_by_role("button", name="Log in").click()
+            page.get_by_label("Username", exact=True).fill(username)
+            page.get_by_label("Password", exact=True).fill(password)
+            page.get_by_role("button", name="Sign in", exact=True).click()
             page.locator("textarea").wait_for(timeout=30000)
             page.wait_for_function("document.querySelector('unicom-chat-with-sidebar').messages.some(message => message.text && message.text.includes('IMAGE DEMO VERIFIED'))")
             assert page.request.get(args.url + "/api/ai/usage/", params={"chat_id": chat_id}).json()["totals"]["attempts"] == 2

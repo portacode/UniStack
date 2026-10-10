@@ -21,8 +21,12 @@ INSTALLED_APPS = [
     "django.contrib.admin", "django.contrib.auth", "django.contrib.contenttypes",
     "django.contrib.sessions", "django.contrib.messages", "django.contrib.staticfiles",
     "django.contrib.humanize", "channels", "django_ace", "reversion",
-    "unicom", "unicrm", "unibot", "core",
+    "unicom", "unibot", "core",
 ]
+# CRM is an optional separately installed integration, not part of the public
+# template checkout. Preserve it for deployments that already provide it.
+if (BASE_DIR / "apps/unicrm/apps.py").is_file():
+    INSTALLED_APPS.append("unicrm")
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
@@ -43,6 +47,7 @@ TEMPLATES = [{
         "django.template.context_processors.request",
         "django.contrib.auth.context_processors.auth",
         "django.contrib.messages.context_processors.messages",
+        "core.branding.context",
     ]},
 }]
 WSGI_APPLICATION = "config.wsgi.application"
@@ -88,3 +93,12 @@ UNIBOT_DEFINITIONS_DIR = BASE_DIR / "data" / "definitions"
 
 # Upstream helpers instantiate OpenAI directly; keep their client defaults local.
 os.environ.setdefault("OPENAI_BASE_URL", OPENAI_BASE_URL)
+
+LOGIN_URL = "/accounts/login/"
+LOGIN_REDIRECT_URL = "/assistant/"
+LOGOUT_REDIRECT_URL = "/"
+# Add project pages here; each URL must also have a normal Django view.
+SITE_NAVIGATION = [
+    {"label": "Overview", "url": "/", "icon": "overview"},
+    {"label": "Assistant", "url": "/assistant/", "icon": "assistant"},
+]

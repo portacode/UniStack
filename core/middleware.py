@@ -14,5 +14,5 @@ class WebChatAccessMiddleware(CsrfViewMiddleware):
         if not request.path.startswith("/unicom/webchat/"):
             return None
         if not request.user.is_authenticated and not settings.UNISTACK_ALLOW_ANONYMOUS_CHAT:
-            return JsonResponse({"error": "Sign in to use UniStack chat."}, status=401)
+            return JsonResponse({"error": "Sign in to use the assistant."}, status=401)
         return super().process_view(request, lambda: None, callback_args, callback_kwargs)

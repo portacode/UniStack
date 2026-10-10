@@ -1,0 +1,21 @@
+{% load static %}<!doctype html>
+<html lang="en"><head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="color-scheme" content="light"><meta name="theme-color" content="{{ brand.primary }}">
+  <title>{% block title %}{{ page_title }} · {{ brand.name }}{% endblock %}</title>
+  {% if brand.logo %}<link rel="icon" href="{% static brand.logo %}">{% endif %}
+  <link rel="stylesheet" href="{% static 'core/site.css' %}">
+  <style>:root { --brand-primary: {{ brand.primary }}; --brand-primary-text: {{ brand.primary_text }}; --brand-action: {{ brand.action }}; --brand-accent: {{ brand.accent }}; --brand-accent-text: {{ brand.accent_text }}; }</style>
+  <script type="importmap">{"imports":{"lit":"https://cdn.jsdelivr.net/npm/lit@3.2.0/+esm","lit/directives/unsafe-html.js":"https://cdn.jsdelivr.net/npm/lit@3.2.0/directives/unsafe-html.js/+esm"}}</script>
+  <script type="module" src="{% static 'core/navigation.js' %}"></script>{% block head %}{% endblock %}
+</head><body>
+<a class="skip-link" href="#main-content">Skip to content</a>
+<div class="app-shell"><aside class="site-sidebar" aria-label="Workspace">
+  <a class="brand" href="/" data-nav>{% include 'core/brand.html' %}<span>{{ brand.name }}</span></a>
+  <button class="menu-toggle button secondary" aria-expanded="false" aria-controls="site-navigation">Menu</button>
+  <nav id="site-navigation" aria-label="Main navigation">{% for item in site_navigation %}<a href="{{ item.url }}" data-nav {% if request.path == item.url %}aria-current="page"{% endif %}><span class="nav-symbol" aria-hidden="true">{% if item.icon == 'assistant' %}✧{% else %}▦{% endif %}</span>{{ item.label }}</a>{% endfor %}</nav>
+  <div class="sidebar-footer"><span class="status-dot" aria-hidden="true"></span>Your workspace</div>
+</aside><div class="workspace">
+  <header class="site-header"><span id="page-label">{{ page_title }}</span><div class="account-actions">{% if user.is_authenticated %}<span class="account-name">{{ user.get_username }}</span>{% if user.is_staff %}<a class="button quiet" href="/admin/">Admin</a>{% endif %}<form method="post" action="{% url 'logout' %}">{% csrf_token %}<button class="button quiet" type="submit">Sign out</button></form>{% else %}<a class="button secondary" href="{% url 'login' %}">Sign in</a>{% endif %}</div></header>
+  <div id="navigation-status" class="navigation-status" role="status" aria-live="polite"></div>
+  <main id="main-content" tabindex="-1" data-page-title="{{ page_title }}" {% block main_attributes %}{% endblock %}>{% block content %}{% endblock %}</main>
+</div></div></body></html>

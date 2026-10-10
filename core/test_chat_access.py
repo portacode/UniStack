@@ -27,7 +27,7 @@ class AnonymousChatTests(TestCase):
         return {"chat_id": result["chat_id"], "message_id": result["message"]["id"]}
 
     def test_guest_opens_chat_and_persists_request(self):
-        self.assertContains(self.client.get("/"), "<unicom-chat-with-sidebar")
+        self.assertContains(self.client.get("/assistant/"), "<unicom-chat-with-sidebar")
         sent = self.send()
         account_id = f"webchat_guest_{self.client.session.session_key}"
         queued = Request.objects.get(message_id=sent["message_id"])
@@ -61,8 +61,8 @@ class AnonymousChatTests(TestCase):
     def test_real_login_transfers_history_after_session_rotation(self):
         sent = self.send()
         old_key = self.client.session.session_key
-        user = get_user_model().objects.create_user("visitor", email="visitor@example.invalid", password="test-password", is_staff=True)
-        response = self.client.post("/admin/login/?next=/", {"username": "visitor", "password": "test-password", "next": "/"})
+        user = get_user_model().objects.create_user("visitor", email="visitor@example.invalid", password="test-password")
+        response = self.client.post("/accounts/login/?next=/", {"username": "visitor", "password": "test-password", "next": "/"})
         self.assertEqual(response.status_code, 302)
         self.assertNotEqual(self.client.session.session_key, old_key)
         self.assertFalse(Account.objects.filter(pk=f"webchat_guest_{old_key}").exists())

@@ -15,4 +15,5 @@ if [ ! -f .env ]; then
     (umask 077; cp .env.example .env)
 fi
 python3 scripts/configure_env.py .env
+python3 scripts/configure_branding.py
 docker compose up -d --build --wait --wait-timeout 180

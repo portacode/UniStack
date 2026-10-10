@@ -42,13 +42,13 @@ class DemoTests(TestCase):
         self.user = get_user_model().objects.create_user(username='demo')
 
     def test_public_home_shows_sign_in(self):
-        response = self.client.get('/')
+        response = self.client.get('/assistant/')
         self.assertContains(response, 'Sign in to chat')
         self.assertNotContains(response, '<unicom-chat-with-sidebar')
 
     def test_signed_in_home_shows_form(self):
         self.client.force_login(self.user)
-        self.assertContains(self.client.get('/'), '<unicom-chat-with-sidebar')
+        self.assertContains(self.client.get('/assistant/'), '<unicom-chat-with-sidebar')
 
     def test_demo_queues_a_persisted_request(self):
         from django.core.management import call_command

@@ -5,7 +5,8 @@ UniCom and UniBot use the exact public versions deployed by
 
 - UniCom: `59b2c91a2c4005f96ecfb96b27f89db6fb081208` — Render each streamed word immediately.
 - UniBot: `b2efe05853ca279668a858b17f5dca20c23969be` — Normalize multimodal content for Responses API.
-- UniCRM: retained snapshot `4146d88a153c231bec0bd47445d5c467384626e2`.
+- UniCRM is optional and is not distributed by this repository. Existing
+  installations with `apps/unicrm/apps.py` retain their integration.
 
 Deployment recursively initializes the commits recorded by Git; it never follows
 moving branch tips. Neither upstream submodule is patched.

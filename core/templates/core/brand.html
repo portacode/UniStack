@@ -1,0 +1,1 @@
+{% load static %}{% if brand.logo %}<img class="brand-logo" src="{% static brand.logo %}" alt="" width="36" height="36">{% else %}<span class="brand-mark" aria-hidden="true">{{ brand.initial }}</span>{% endif %}

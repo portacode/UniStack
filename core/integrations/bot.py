@@ -11,6 +11,7 @@ from unicom.services.webchat.streaming import WebChatMessageStreamSink
 from core.integrations.client import ObservedClient, ResponseFailure, local_client
 from core.integrations.upstream_responses import create_response
 from core.models import ModelInvocation
+from core.branding import get_brand
 
 
 def strict_schema(schema):
@@ -99,7 +100,7 @@ def _reply(message, bot, tools_list, request, client):
     try:
         messages = message.as_llm_chat(
             depth=129, mode="chat", multimodal=True,
-            system_instruction="You are UniStack AI. Answer clearly, directly, and helpfully.",
+            system_instruction=f"You are {get_brand()['name']}'s assistant. Answer clearly, directly, and helpfully.",
         )
         tools, _, auto_params = build_openai_tools(tools_list, bot=bot, message=message, openai_client=client, request=request)
         for tool in tools:

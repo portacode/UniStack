@@ -1,54 +1,6 @@
-{% load static %}
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="color-scheme" content="dark">
-  <title>UniStack · Portacode</title>
-  <style>
-    :root { font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color: #eef2ff; background: #070912; }
-    * { box-sizing: border-box; }
-    html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; }
-    body { background: radial-gradient(circle at 12% 0%, #172554 0, transparent 34%), radial-gradient(circle at 90% 95%, #3b0764 0, transparent 30%), #070912; }
-    .shell { width: 100%; height: 100vh; height: 100dvh; min-height: 0; display: grid; grid-template-rows: 68px minmax(0, 1fr) auto; padding: 0 22px 22px; gap: 16px; overflow: hidden; }
-    header { display: flex; align-items: center; justify-content: space-between; gap: 20px; }
-    .brand { display: flex; align-items: center; gap: 12px; min-width: 0; }
-    .mark { width: 34px; height: 34px; display: grid; place-items: center; border-radius: 11px; background: linear-gradient(135deg, #7c3aed, #2563eb); box-shadow: 0 10px 30px #4f46e566; font-weight: 800; }
-    h1 { margin: 0; font-size: 18px; line-height: 1.1; letter-spacing: -.02em; }
-    .subtitle { margin: 4px 0 0; color: #929bb4; font-size: 12px; }
-    .admin, .login { color: #c7d2fe; text-decoration: none; font-size: 13px; padding: 9px 13px; border: 1px solid #ffffff1f; border-radius: 10px; background: #ffffff0b; }
-    .admin:hover, .login:hover { border-color: #818cf866; background: #818cf812; }
-    button.admin { cursor: pointer; }
-    nav { display: flex; gap: 8px; }
-    #chat-status { font-size: 12px; color: #929bb4; margin: 0; }
-    main { min-width: 0; min-height: 0; height: 100%; position: relative; overflow: hidden; border: 1px solid #ffffff1a; border-radius: 20px; background: #090c16ee; box-shadow: 0 24px 80px #0008; }
-    .welcome { display: grid; align-content: center; justify-items: center; height: 100%; padding: 24px; text-align: center; gap: 16px; }
-    .welcome p { max-width: 520px; color: #929bb4; line-height: 1.6; }
-    unicom-chat-with-sidebar { position: relative; display: block; width: 100%; height: 100%; min-height: 0; --unicom-primary-color: #7c3aed; --unicom-background-color: #090c16; --unicom-message-bg-incoming: #151a2a; --unicom-border-color: #252b3d; --unicom-sidebar-bg: #0c101c; --unicom-sidebar-header-bg: #111625; --unicom-sidebar-item-hover: #151a2a; --unicom-sidebar-item-selected: linear-gradient(135deg, #6d28d9, #4f46e5); --unicom-bubble-radius: 18px; --unicom-control-radius: 12px; --unicom-content-max-width: 860px; }
-    @media (max-width: 640px) { .shell { grid-template-rows: 56px minmax(0, 1fr) auto; padding: 0 6px 6px; gap: 6px; } header { padding-inline: 8px; } .subtitle { display: none; } main { border-radius: 14px; } .admin { padding: 7px 10px; } }
-  </style>
-  {% if chat_enabled %}
-  <script type="importmap">{"imports":{"lit":"https://cdn.jsdelivr.net/npm/lit@3.2.0/+esm","lit/directives/unsafe-html.js":"https://cdn.jsdelivr.net/npm/lit@3.2.0/directives/unsafe-html.js/+esm"}}</script>
-  <script type="module" src="{% static 'unicom/webchat/webchat-with-sidebar.js' %}"></script>
-  <script type="module" src="{% static 'core/chat-status.js' %}"></script>
-  {% endif %}
-</head>
-<body>
-  <div class="shell">
-    <header>
-      <div class="brand"><div class="mark">U</div><div><h1>UniStack</h1><p class="subtitle">{{ model }} · Local Portacode AI · Messaging &amp; CRM</p></div></div>
-      <nav>{% if chat_enabled %}<button class="admin" id="retry" hidden>Retry reply</button><button class="admin" id="usage">Usage</button>{% endif %}{% if not user.is_authenticated and chat_enabled %}<a class="admin" href="/admin/login/?next=/">Sign in</a>{% endif %}<a class="admin" href="/admin/">Admin</a></nav>
-    </header>
-    <main aria-label="UniStack chat">
-      {% if chat_enabled %}
-      <unicom-chat-with-sidebar api-base="/unicom/webchat" {% if channel %}channel-id="{{ channel.pk }}"{% endif %} theme="dark" max-messages="200" auto-refresh="1" disable-websocket></unicom-chat-with-sidebar>
-      <noscript>Enable JavaScript to use the chat interface.</noscript>
-      {% else %}
-      <div class="welcome"><h2>Your AI workspace is ready.</h2><p>Persistent conversations, streamed replies, and attachments powered by UniCom and UniBot. AI requests use your connected Portacode account's balance.</p><a class="login" href="/admin/login/?next=/">Sign in to chat</a><p>Use the administrator credentials you chose during deployment.</p></div>
-      {% endif %}
-    </main>
-    <p id="chat-status" role="status" aria-live="polite"></p>
-  </div>
-</body>
-</html>
+{% extends 'core/base.html' %}
+{% block content %}<div class="page-content">
+<div class="eyebrow">YOUR WORKSPACE</div><h1>Welcome{% if user.is_authenticated %}, {{ user.get_username }}{% endif %}.</h1><p class="lead">{{ brand.tagline }}</p>
+<section class="feature-card" aria-labelledby="assistant-heading"><div class="feature-copy"><span class="feature-icon" aria-hidden="true">✧</span><h2 id="assistant-heading">A little help. A clearer next step.</h2><p>Ask a question, explore an idea, or work through a task with your assistant.</p><a class="button primary" href="{% url 'assistant' %}" data-nav>Open assistant <span aria-hidden="true">↗</span></a></div><div class="feature-art" aria-hidden="true"><div class="art-orbit"></div><div class="art-center">✧</div><div class="art-note note-one">Make room for ideas</div><div class="art-note note-two">Find your next step</div></div></section>
+<section class="getting-started" aria-labelledby="getting-started-heading"><h2 id="getting-started-heading">Start with a conversation</h2><div class="starter-grid"><a href="{% url 'assistant' %}" data-nav class="starter-card"><span aria-hidden="true">01</span><h3>Explore an idea</h3><p>Turn a rough thought into a useful plan.</p></a><a href="{% url 'assistant' %}" data-nav class="starter-card"><span aria-hidden="true">02</span><h3>Work through a question</h3><p>Get another perspective on what matters.</p></a><a href="{% url 'assistant' %}" data-nav class="starter-card"><span aria-hidden="true">03</span><h3>Keep things moving</h3><p>Return to your conversations whenever you need.</p></a></div></section>
+</div>{% endblock %}

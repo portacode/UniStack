@@ -61,7 +61,7 @@ host networking is not the target deployment environment.
 - `config/`: project settings, URL routing, and ASGI configuration.
 - `core/`: project-owned views and landing page; extend your application here.
 - `apps/unicom`, `apps/unibot`: clean upstream submodules; no build-time patches.
-- `apps/unicrm`: retained CRM snapshot.
+- `apps/unicrm`: optional separately installed CRM integration, not shipped.
 - `templates/`: project-level template overrides, including the default AI bot.
 - `data/definitions/`: the streaming demo bot and optional tool definitions.
 - `scripts/deploy.sh`: repeatable deployment entry point.
