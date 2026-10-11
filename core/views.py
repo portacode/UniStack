@@ -30,10 +30,12 @@ def webchat_account_id(request):
 def protected_media(request, path):
     # Guest attachments need the same conversation ownership checks as text.
     webchat_files = Message.objects.filter(media=path, platform="WebChat")
-    # Keep administrative inspection and existing non-chat CRM media working.
-    if request.user.is_authenticated and (
-        request.user.is_staff or not webchat_files.exists()
-    ):
+    # This route owns chat attachments only. Applications must provide their
+    # own ownership-checked downloads for documents and other private files.
+    # Never turn knowledge of a storage path into authorization to read it.
+    if not webchat_files.exists():
+        raise Http404("Attachment not found")
+    if request.user.is_authenticated and request.user.is_staff:
         return serve(request, path, document_root=settings.MEDIA_ROOT)
     account_id = webchat_account_id(request)
     if not account_id or not webchat_files.filter(

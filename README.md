@@ -77,7 +77,8 @@ shared database. These are useful building blocks for a multi-user AI applicatio
 **Company-level tenant isolation needs additional application design.** The
 template does not configure separate schemas/databases per tenant or an
 organization membership/role system. CRM data and non-chat media do not inherit
-WebChat's conversation boundaries; non-chat media is available to signed-in users.
+WebChat's conversation boundaries. The generic media route refuses non-chat
+files; add an ownership-checked download view for your application's files.
 Custom tools must authorize access to their own data and external services using
 the account context. Add tenant scoping for your models, retrieval indexes, files,
 and jobs when building a shared SaaS application.

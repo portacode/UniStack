@@ -87,12 +87,14 @@ class AnonymousChatTests(TestCase):
             other_user.save(update_fields=["is_staff"])
             self.assertEqual(stranger.get(message.media.url).status_code, 200)
 
-    def test_non_chat_media_remains_available_to_signed_in_users(self):
+    def test_non_chat_media_requires_an_application_owned_download_route(self):
         with tempfile.TemporaryDirectory() as media_root, override_settings(MEDIA_ROOT=media_root):
             Path(media_root, "crm-file.txt").write_text("CRM document")
             self.assertEqual(self.client.get("/media/crm-file.txt").status_code, 404)
             self.client.force_login(get_user_model().objects.create_user("crm-reader"))
-            self.assertEqual(self.client.get("/media/crm-file.txt").status_code, 200)
+            self.assertEqual(self.client.get("/media/crm-file.txt").status_code, 404)
+            self.client.force_login(get_user_model().objects.create_user("staff-reader", is_staff=True))
+            self.assertEqual(self.client.get("/media/crm-file.txt").status_code, 404)
 
     @override_settings(UNISTACK_ALLOW_ANONYMOUS_CHAT=False)
     def test_disabled_policy_blocks_all_guest_entry_points(self):

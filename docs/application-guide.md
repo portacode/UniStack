@@ -39,6 +39,14 @@ edit the project-owned bot adapter and tool definitions.
    loaded by the base template; page-local head blocks are only loaded on a
    full page visit. Do not require navigation to inject scripts/styles.
 
+The `/media/` route serves only authorized chat attachments. For private
+documents, use a view that looks up the document by both its ID and the current
+user before returning `FileResponse`. Do not add a generic authenticated media
+fallback: sign-in does not authorize someone else's files. Test raw storage
+URLs as well as document URLs using a second account and an anonymous browser.
+Existing integrations that previously relied on generic non-chat media serving
+must add an explicit download route with their own access rules.
+
 Use normal Django forms with CSRF protection, meaningful validation, empty
 states and success/error feedback. Paginate data on the server; lazy page
 modules are not a substitute for paginating large lists. Render image assets
