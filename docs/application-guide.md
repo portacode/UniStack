@@ -54,6 +54,26 @@ with dimensions and `loading="lazy"` when below the fold.
 
 ## First-build acceptance
 
+### Container development loop
+
+The running containers use the built image, not source edits in the project
+folder. After adding dependencies, build the image once. Then validate edits
+through a source mount without repeatedly replacing the running app:
+
+```sh
+docker compose run --rm --no-deps -v "$PWD:/app" --entrypoint python web manage.py makemigrations core
+docker compose run --rm --no-deps -v "$PWD:/app" --entrypoint python web manage.py makemigrations --check --dry-run
+docker compose run --rm --no-deps -v "$PWD:/app" --entrypoint python web manage.py check
+docker compose run --rm --no-deps -v "$PWD:/app" --entrypoint python web manage.py test core --noinput
+```
+
+Generate migrations with Django, including its index names; never hand-write
+them. Add the new app label to `makemigrations` when appropriate. Run containers
+as the checkout's owner when necessary to avoid root-owned generated files.
+Once checks pass, use `./scripts/deploy.sh` to rebuild and wait for healthy
+services, then run the live UI tests. Routine source edits do not require
+`docker compose down` or `up --force-recreate` for the whole stack.
+
 ### Ground the actual chat UI
 
 Put application context in `core/integrations/context.py`'s

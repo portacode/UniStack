@@ -25,5 +25,11 @@ not a UniStack demo. Read `docs/application-guide.md` before customization.
   and phone sizes: navigation/back/reload, authentication, primary CRUD flow,
   upload/download, search, real AI response, errors, and cross-account isolation.
   Review screenshots and browser errors before reporting completion.
+- Generate migrations with Django against a source-mounted container; do not
+  hand-write migration files or index names. Check migration drift before
+  deploying. See the container development loop in `docs/application-guide.md`.
+- Test source changes in a one-off container before rebuilding the live app.
+  Recreate only changed services; repeatedly forcing the entire Compose stack
+  to recreate interrupts the database and makes browser verification unreliable.
 - Do not deploy changes by restarting the host Portacode service. Use the
   project's `scripts/deploy.sh` for application rebuilds.
