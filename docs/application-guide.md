@@ -22,6 +22,9 @@ custom properties, including automatically chosen light/dark foregrounds.
 assistant identity and favicon reuse the logo. No edits to upstream apps are
 needed. The default AI identity also uses the project name. For custom behavior,
 edit the project-owned bot adapter and tool definitions.
+Deployment also synchronizes the UniCom bot sender's display name and its
+existing outgoing message labels. Changing the brand therefore updates chat
+history as well as the website; the internal channel ID stays stable.
 
 ## Add a product page
 

@@ -1,7 +1,8 @@
 from django.core.management import call_command
 from django.core.management.base import BaseCommand, CommandError
 from unibot.models import Bot
-from unicom.models import Channel
+from unicom.models import Account, Channel, Message
+from core.branding import get_brand
 
 
 class Command(BaseCommand):
@@ -27,4 +28,15 @@ class Command(BaseCommand):
         if not channel.active:
             raise CommandError("The UniStack WebChat channel could not be activated")
         category.allowed_channels.set([channel])
+        # Keep the stable internal channel identity while branding the sender
+        # rendered by UniCom. Its helper otherwise defaults to channel.name.
+        display_name = f"{get_brand()['name']} assistant"[:100]
+        sender, _ = Account.objects.update_or_create(
+            id=f"webchat_bot_{channel.pk}",
+            defaults={"channel": channel, "platform": "WebChat", "is_bot": True,
+                      "name": display_name, "raw": {"channel_id": channel.pk}},
+        )
+        Message.objects.filter(channel=channel, sender=sender, is_outgoing=True).update(
+            sender_name=display_name,
+        )
         self.stdout.write(self.style.SUCCESS("UniStack streaming WebChat is ready"))

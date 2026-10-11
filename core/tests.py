@@ -84,6 +84,22 @@ class DemoTests(TestCase):
 
 
 class BootstrapTests(TestCase):
+    def test_brand_updates_bot_sender_and_existing_replies_without_new_channel(self):
+        from django.core.management import call_command
+        from unicom.models import Account, Channel, Chat
+        with patch("core.management.commands.sync_unistack.get_brand", return_value={"name": "First brand"}):
+            call_command("sync_unistack", verbosity=0)
+        channel = Channel.objects.get(name="UniStack WebChat")
+        chat = Chat.objects.create(id="brand-test-chat", platform="WebChat", channel=channel)
+        reply = channel.send_message({"chat_id": chat.pk, "text": "A branded reply"})
+        self.assertEqual(reply.sender_name, "First brand assistant")
+        with patch("core.management.commands.sync_unistack.get_brand", return_value={"name": "New brand"}):
+            call_command("sync_unistack", verbosity=0)
+        reply.refresh_from_db()
+        self.assertEqual(reply.sender_name, "New brand assistant")
+        self.assertEqual(Account.objects.get(pk=f"webchat_bot_{channel.pk}").name, "New brand assistant")
+        self.assertEqual(Channel.objects.filter(name="UniStack WebChat").count(), 1)
+
     def test_bootstrap_creates_ready_channel_and_bot_once(self):
         from django.core.management import call_command
         from unicom.models import Channel
