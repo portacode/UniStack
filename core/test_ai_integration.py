@@ -77,6 +77,23 @@ class ModelFlowTests(TestCase):
         with self.assertRaisesRegex(ValueError, "immutable"):
             attempt.save()
 
+    def test_native_chat_and_http_api_use_the_same_context_hook(self):
+        for route, payload in (("/api/ai/respond/", {"prompt": "A question"}),
+                               ("/unicom/webchat/send/", {"text": "A question"})):
+            with self.subTest(route=route):
+                response = self.client.post(route, payload, content_type="application/json")
+                self.assertIn(response.status_code, (200, 202))
+                data = response.json()
+                message_id = data.get("message_id") or data["message"]["id"]
+                message = Message.objects.get(pk=message_id)
+                queued = Request.objects.get(message=message)
+                self.api.responses.create.return_value = successful_events()
+                with patch("core.integrations.bot.build_system_instruction", return_value="Authorized project context: CONTEXT_MARKER") as context:
+                    with patch("core.integrations.bot.local_client", return_value=self.api):
+                        self.assertTrue(self.bot.process_request(queued))
+                context.assert_called_once_with(message, queued)
+                self.assertIn("CONTEXT_MARKER", str(self.api.responses.create.call_args.kwargs))
+
     def test_truncated_stream_retains_partial_text_and_can_retry(self):
         self.api.responses.create.return_value = iter([event("response.output_text.delta", delta="Partial")])
         self.assertFalse(self.process())

@@ -93,7 +93,7 @@ account's chat.
 | Change | Starting point |
 | --- | --- |
 | Bot behavior and routing | [Source bot](data/definitions/bots/unistack.py): replace or extend the Python message handler; add more bot definitions for different workflows. |
-| Instructions and model context | [AI adapter](core/integrations/bot.py): customize the system instruction, conversation-history selection, and response handling. |
+| Instructions and model context | [Shared context hook](core/integrations/context.py): customize instructions and authorized retrieval for both the native chat UI and HTTP API. The [AI adapter](core/integrations/bot.py) handles history and responses. |
 | Actions and integrations | Add Python tool definitions under `data/definitions/tools/` and name them in the bot's `bot_tools`. Tools can call your APIs, query authorized data, or return files. Deployment synchronizes definitions with `sync_tools_and_bots`. |
 | Model and runtime limits | Configure `PORTACODE_LLM_MODEL`, `PORTACODE_REASONING_EFFORT`, `PORTACODE_RESPONSES_BASE_URL`, `PORTACODE_RESPONSE_TIMEOUT`, and `UNISTACK_MAX_TOOL_CALLS`. |
 | Product UI and business data | Extend `core/`, project templates, and `config/`; add Django models, views, permissions, and routes alongside the reusable apps. |

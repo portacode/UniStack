@@ -18,6 +18,9 @@ not a UniStack demo. Read `docs/application-guide.md` before customization.
   and AI retrieval operation. Never put private documents in public static files.
 - Implement actual persistence and AI tools. A conversational mock or canned
   summary does not satisfy an AI-assisted product request.
+- Add retrieval/instructions through `core/integrations/context.py`, which is
+  shared by the native UniCom composer and HTTP API. Changing only
+  `/api/ai/respond/` does not change the visible chat's behavior.
 - Run Django checks and affected tests, then test the deployed site at desktop
   and phone sizes: navigation/back/reload, authentication, primary CRUD flow,
   upload/download, search, real AI response, errors, and cross-account isolation.

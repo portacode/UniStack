@@ -54,6 +54,26 @@ with dimensions and `loading="lazy"` when below the fold.
 
 ## First-build acceptance
 
+### Ground the actual chat UI
+
+Put application context in `core/integrations/context.py`'s
+`build_system_instruction(message, request)`. The bot adapter calls this hook
+for both the native UniCom composer and the optional HTTP AI endpoint.
+The native composer posts to `/unicom/webchat/send/`; it does **not** post to
+`/api/ai/respond/`. Adding retrieval only to the latter leaves the actual UI
+ungrounded. Do not patch or replace the shared chat component to work around it.
+
+The hook receives persisted UniCom models, not a Django HTTP request. For a
+signed-in WebChat message, `message.user_id` identifies the sender; validate the
+request's account ownership and scope every document query to that identity.
+Do not use a user ID supplied in message text or JSON as an authorization source.
+Keep extracted text bounded, clearly labeled as untrusted source material, and
+include citation identifiers. Retrieve current authorized data on each turn so
+deleted documents stop appearing in newly supplied context. Test through the
+visible composer, including a second account with different private documents.
+
+### Product workflows
+
 For an AI-assisted DMS, the main navigation should lead to Documents, Upload and
 Assistant (and other requested real features). The first build must support:
 upload a document, see it in the list, search, open its details, download the
