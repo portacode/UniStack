@@ -3,6 +3,7 @@ let cleanup = () => {};
 let pending;
 let sequence = 0;
 const status = document.getElementById('navigation-status');
+const skeleton = document.getElementById('page-skeleton');
 const menu = document.querySelector('.menu-toggle');
 const closeMenu = () => { document.querySelector('.site-sidebar').classList.remove('menu-open'); menu.setAttribute('aria-expanded', 'false'); };
 menu.addEventListener('click', () => {
@@ -14,6 +15,9 @@ document.addEventListener('keydown', event => {
   if (event.key === 'Escape' && menu.getAttribute('aria-expanded') === 'true') {
     closeMenu(); menu.focus();
   }
+});
+document.addEventListener('click', event => {
+  if (!event.target.closest('.site-sidebar')) closeMenu();
 });
 
 async function mount(main) {
@@ -35,7 +39,9 @@ async function navigate(url, push = true) {
   const current = ++sequence;
   const oldMain = document.getElementById('main-content');
   oldMain.setAttribute('aria-busy', 'true');
-  status.textContent = 'Loading…';
+  oldMain.inert = true;
+  skeleton.hidden = false;
+  status.textContent = '';
   closeMenu();
   try {
     const response = await fetch(url, {signal: pending.signal, headers: {'X-Requested-With': 'site-navigation'}});
@@ -46,11 +52,13 @@ async function navigate(url, push = true) {
     if (current !== sequence) return;
     cleanup(); cleanup = () => {};
     oldMain.replaceWith(next);
+    skeleton.hidden = true;
     document.title = doc.title;
     document.getElementById('page-label').textContent = next.dataset.pageTitle || '';
     if (push) history.pushState({}, '', url);
     for (const link of document.querySelectorAll('#site-navigation a')) {
-      if (new URL(link.href).pathname === location.pathname) link.setAttribute('aria-current', 'page');
+      const path = new URL(link.href).pathname;
+      if (path === location.pathname || (path !== '/' && location.pathname.startsWith(path.replace(/\/$/, '') + '/'))) link.setAttribute('aria-current', 'page');
       else link.removeAttribute('aria-current');
     }
     status.textContent = '';
@@ -60,6 +68,8 @@ async function navigate(url, push = true) {
   } catch (error) {
     if (error.name !== 'AbortError' && current === sequence) {
       oldMain.removeAttribute('aria-busy');
+      oldMain.inert = false;
+      skeleton.hidden = true;
       status.textContent = 'Could not load the page. Check your connection and try again.';
       const retry = document.createElement('button');
       retry.className = 'button secondary'; retry.textContent = 'Try again';

@@ -1,0 +1,6 @@
+{% extends 'core/base.html' %}
+{% block main_attributes %}class="auth-page"{% endblock %}
+{% block content %}<div class="auth-layout">
+<aside class="auth-story"><a class="brand" href="/" data-nav>{% include 'core/brand.html' %}<span>{{ brand.name }}</span></a><div><p class="eyebrow">A SPACE THAT'S YOURS</p><h2>A clearer mind.<br>A new beginning.</h2><p>{{ brand.tagline }}</p></div>{% include 'core/product-art.html' %}<span class="auth-story-note">A little space for your next big idea.</span></aside>
+<section class="auth-form-panel"><a href="/" class="auth-back" data-nav>← Back to home</a><div class="auth-card">{% block auth_content %}{% endblock %}</div><span class="auth-footer">{{ brand.name }} · Your space to move forward.</span></section>
+</div>{% endblock %}

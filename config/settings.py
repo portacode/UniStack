@@ -90,6 +90,7 @@ PORTACODE_REASONING_EFFORT = os.environ.get("PORTACODE_REASONING_EFFORT", "none"
 PORTACODE_RESPONSE_TIMEOUT = float(os.environ.get("PORTACODE_RESPONSE_TIMEOUT", "90"))
 UNISTACK_MAX_TOOL_CALLS = int(os.environ.get("UNISTACK_MAX_TOOL_CALLS", "8"))
 UNISTACK_ALLOW_ANONYMOUS_CHAT = os.environ.get("UNISTACK_ALLOW_ANONYMOUS_CHAT", "false").lower() in {"1", "true", "yes"}
+UNISTACK_ALLOW_SIGNUP = os.environ.get("UNISTACK_ALLOW_SIGNUP", "true").lower() in {"1", "true", "yes"}
 CREDENTIAL_ENCRYPTION_KEY = os.environ.get("CREDENTIAL_ENCRYPTION_KEY", "")
 UNICOM_TINYMCE_API_KEY = os.environ.get("UNICOM_TINYMCE_API_KEY", "")
 UNICRM_AUTO_START_SCHEDULER = False
@@ -104,6 +105,6 @@ LOGIN_REDIRECT_URL = "/assistant/"
 LOGOUT_REDIRECT_URL = "/"
 # Add project pages here; each URL must also have a normal Django view.
 SITE_NAVIGATION = [
-    {"label": "Overview", "url": "/", "icon": "overview"},
+    {"label": "Home", "url": "/", "icon": "overview"},
     {"label": "Assistant", "url": "/assistant/", "icon": "assistant"},
 ]

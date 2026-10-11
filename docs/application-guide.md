@@ -1,6 +1,6 @@
 # Build on the provided application shell
 
-The starter has an overview, assistant, branded sign-in/out, responsive site
+The starter has a marketing home, full-height assistant, branded signup and sign-in/out, responsive site
 navigation, active links, browser back/forward support, loading/error states,
 keyboard focus handling and optional page modules. The overview does not load
 Lit or chat code. Opening the assistant dynamically loads the shared UniCom UI.
@@ -40,7 +40,33 @@ history as well as the website; the internal channel ID stays stable.
 5. Use the shared `.button.primary`, `.button.secondary`, `.button.quiet`,
    `.page-content`, and brand variables. Add feature styles to a stylesheet
    loaded by the base template; page-local head blocks are only loaded on a
-   full page visit. Do not require navigation to inject scripts/styles.
+full page visit. Do not require navigation to inject scripts/styles.
+
+### Product presentation
+
+Replace `marketing.json` with the actual product's headline, description,
+features and closing call to action. Also update the section headings and
+illustration labels in `core/templates/core/home.html` and the story in
+`core/templates/registration/auth_base.html`. The supplied copy and decorative
+product preview are placeholders; do not present them as proof of features or
+invent customer logos, testimonials or usage statistics. Keep `/` public for
+marketing and place private workflows on their own routes.
+
+`SITE_NAVIGATION` drives both layouts: a left sidebar on large screens and
+bottom tabs at mobile widths when 1–5 entries are visible. Six or more use a
+menu. Add `authenticated: True` to account-only entries. Nested URLs inherit
+their parent item's active state. Built-in icons include `overview`,
+`assistant`, `documents`, `upload` and `settings`; extend `nav-icon.html` for
+more. Keep the list focused on primary destinations; use in-page navigation
+for secondary actions.
+
+The assistant fills the remaining viewport after app navigation. Put optional
+app-specific context in its compact toolbar, not an extra full page header.
+Page transitions and chat initialization use skeletons with reduced-motion
+support. `chat-theme.js` supplies scoped CSS to the pinned UniCom components'
+open shadow roots, including subsequent history loads and send states. It
+does not change component methods, transport, data or upstream files. Verify
+this adapter when updating the UniCom submodule.
 
 The `/media/` route serves only authorized chat attachments. For private
 documents, use a view that looks up the document by both its ID and the current
@@ -66,6 +92,9 @@ the assistant requires an account. This controls chat access, not permission
 to application data. Keep private document retrieval separately authorized.
 
 The built-in signup uses Django password validation and automatic login.
+Use `UNISTACK_ALLOW_SIGNUP=false` (also a deployment input) for an invite-only
+app. Keep the signup route: it returns 404 and shared pages hide its links.
+Do not delete the route or place the public marketing/auth pages behind login.
 Both signup and login transfer conversations and attachments from the current
 browser's guest session into the account, including queued requests. Other
 guest sessions remain isolated. Signup does not verify email ownership; add
@@ -79,7 +108,9 @@ folder. After adding dependencies, build the image once. Then validate edits
 through a source mount without repeatedly replacing the running app:
 
 ```sh
-./scripts/check.sh --migrations core
+./scripts/check.sh --startapp documents  # Once, for a new Django app
+# Register documents in INSTALLED_APPS, implement models/views and navigation.
+./scripts/check.sh --migrations documents
 ./scripts/check.sh
 ./scripts/deploy.sh
 ```
@@ -93,7 +124,11 @@ services, then run the live UI tests. Routine source edits do not require
 The check script checks memory headroom, bounds execution to five minutes,
 and removes its own temporary container on exit. It runs checks, migration
 drift detection and tests against edited source. Pass app/test labels to scope
-tests. Do not recreate the deployment setup or run raw Compose commands for
+tests (without labels it discovers all project tests, including new apps).
+It also renders the public/auth pages in all signup/chat access combinations.
+Deployment checks missing migrations before replacing app services and
+creates the initial administrator automatically. Do not recreate the
+deployment setup or run raw Compose commands for
 routine edits. Use Compose directly only for a diagnosed infrastructure issue
 or rebuilding an image after changing dependencies.
 
@@ -131,3 +166,6 @@ scrolling. Check browser console/network failures, keyboard focus, back/forward,
 direct URLs and refresh. Use the provided `scripts/browser_site_acceptance.py`
 for the foundation and `scripts/browser_acceptance.py` for actual AI streaming,
 attachments and history, then add the product-specific flow checks.
+Run the foundation browser suite on a test instance with guest chat and signup
+enabled; it exercises both forms and the composer. Keep production access
+settings appropriate to the product, and test its authenticated flows separately.

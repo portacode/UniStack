@@ -7,8 +7,11 @@ not a UniStack demo. Read `docs/application-guide.md` before customization.
   module lifecycle. Extend the shell for product pages instead of replacing it.
 - Set `branding.json` once. Website, sign-in and assistant share its name, logo
   and colors. Never scatter branding values through templates or upstream apps.
-- Replace the overview content with the requested product's real primary flow.
-  Do not leave starter cards, sample metrics, marketing banners or fake actions.
+- Keep `/` as the product marketing home. Replace `marketing.json`, the
+  feature headings/illustration in `core/templates/core/home.html` and the
+  auth story with accurate product marketing. Never leave generic starter
+  copy or invent customers, testimonials, compliance or performance claims.
+  Put the product's primary app flow on its own route and navigation entry.
 - Add normal Django routes and entries to `SITE_NAVIGATION`. Use page modules
   for lazy feature initialization, returning cleanup functions for listeners,
   timers and in-flight work. Keep forms functional after direct navigation.
@@ -28,6 +31,18 @@ not a UniStack demo. Read `docs/application-guide.md` before customization.
 - Generate migrations with Django against a source-mounted container; do not
   hand-write migration files or index names. Check migration drift before
   deploying. See the container development loop in `docs/application-guide.md`.
+- Scaffold new apps with `./scripts/check.sh --startapp documents`, register
+  the app in settings, then use `./scripts/check.sh --migrations documents`.
+  Both commands write to the project, not a disposable container. Never
+  generate migrations with `docker compose exec` against the built image.
+- Keep login, signup and assistant URLs. Use `UNISTACK_ALLOW_SIGNUP=false`
+  for invite-only apps and `UNISTACK_ALLOW_ANONYMOUS_CHAT=false` for private
+  chat. Shared templates already hide unavailable signup actions. Do not
+  remove auth routes or replace the shell to implement access policy.
+- Extend the existing assistant through its shared context hook. Do not build
+  a parallel composer/Markdown renderer for document questions. Preserve the
+  full-height chat layout, skeleton theme and responsive navigation. Up to
+  five visible entries become mobile bottom tabs; more use the mobile menu.
 - Test source changes in a one-off container before rebuilding the live app.
   Use `./scripts/check.sh` (or `./scripts/check.sh --migrations core` to
   generate migrations), then `./scripts/deploy.sh`. Do not reimplement setup

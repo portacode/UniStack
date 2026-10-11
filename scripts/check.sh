@@ -4,6 +4,7 @@ set -eu
 cd "$(dirname "$0")/.."
 case "${1:-}" in
   --migrations) shift; mode=migrations ;;
+  --startapp) shift; mode=startapp ;;
   *) mode=check ;;
 esac
 # A build/test process needs headroom beyond the running web and worker.
@@ -18,13 +19,14 @@ fi
 name="unistack-check-$$"
 trap 'docker rm -f "$name" >/dev/null 2>&1 || true' EXIT
 trap 'exit 130' INT TERM
-if [ "$mode" = migrations ]; then
+if [ "$mode" = migrations ] || [ "$mode" = startapp ]; then
+    command=makemigrations
+    if [ "$mode" = startapp ]; then command=startapp; fi
     timeout --foreground 300 docker compose run --name "$name" --rm --no-deps \
         --user "$(id -u):$(id -g)" -v "$PWD:/app" --entrypoint python web \
-        manage.py makemigrations "$@"
+        manage.py "$command" "$@"
 else
-    if [ "$#" -eq 0 ]; then set -- core; fi
     timeout --foreground 300 docker compose run --name "$name" --rm --no-deps \
         --user "$(id -u):$(id -g)" -v "$PWD:/app" --entrypoint sh web -c \
-        'python manage.py check && python manage.py makemigrations --check --dry-run && python manage.py test "$@" --noinput' sh "$@"
+        'python manage.py check && python manage.py makemigrations --check --dry-run && python manage.py check_site && python manage.py test "$@" --noinput' sh "$@"
 fi

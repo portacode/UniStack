@@ -16,11 +16,13 @@ admin credentials.** Portacode provisions the environment and deploys everything
 automatically. When it finishes, open the app link and choose **Assistant**.
 The local Portacode AI connection is configured for you.
 
-The [deployment template](portafile.yaml) requests **0.5 CPU, 1 GiB RAM, and
+The [deployment template](portafile.yaml) requests **0.5 CPU, 1.5 GiB RAM, and
 12 GiB disk**. A fresh Docker build needs temporary space for image layers as
 well as the running application; 7 GiB left less than 400 MiB for customization
 and uploads in deployment testing. Increase these allocations as your workload
-and stored data grow.
+and stored data grow. The extra memory provides headroom for source validation
+alongside the web and AI worker processes; the check script refuses to start
+another container when less than 384 MiB remains.
 
 **Anonymous visitors can access AI chat** is enabled by default. Each visitor gets
 their own session and saved conversations; signing in transfers that session's
@@ -35,11 +37,20 @@ upstream app repositories retain their history.
 
 ## What is included
 
-The project starts with a clean, responsive website shell, desktop/mobile
-navigation, lazy-loaded assistant, branded sign-in, and one shared branding
+The project starts with an editable marketing home, desktop sidebar, mobile
+bottom tabs (up to five entries), full-height lazy-loaded assistant, skeleton
+loading, styled signup/sign-in, and one shared branding
 configuration for the site and UniCom chat. It contains no UniStack marketing
 banners. See [the application guide](docs/application-guide.md) for customization
 and first-build acceptance criteria.
+
+Replace the starter marketing in `marketing.json` and the home/auth templates
+with the actual product material. For routine development, use
+`./scripts/check.sh --startapp <app>`, `./scripts/check.sh --migrations <app>`,
+`./scripts/check.sh`, and `./scripts/deploy.sh`. These preserve generated files
+in the checkout, test new apps as well as the foundation, and catch broken
+auth links and missing migrations before delivery. Invite-only projects should
+set `UNISTACK_ALLOW_SIGNUP=false`, preserving the shared routes and templates.
 
 | Area | Capabilities |
 | --- | --- |

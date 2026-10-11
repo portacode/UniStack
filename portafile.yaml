@@ -5,7 +5,7 @@ username: root
 requires_codex_connection: true
 resources:
   disk_gib: 12
-  ram_mib: 1024
+  ram_mib: 1536
   cpus: 0.5
 inputs:
   - id: brand_name
@@ -46,6 +46,12 @@ inputs:
     required: false
     default: my-project
     description: Optional folder name, such as my-app. Use lowercase letters, numbers, and hyphens.
+  - id: unistack_allow_signup
+    type: boolean
+    label: Allow visitors to create accounts
+    required: false
+    default: true
+    description: Turn off for an invite-only app. Sign-in remains available and signup links are hidden automatically.
   - id: django_superuser_username
     type: text
     label: Django admin username
@@ -69,7 +75,6 @@ automation_task:
     - run: portacode github-setup
     - run: git clone --recurse-submodules https://github.com/portacode/UniStack.git "$HOME/.unistack-template" && python3 "$HOME/.unistack-template/scripts/create_project.py"
     - run: cd "$HOME/${PROJECT_SLUG:-my-project}" && ./scripts/deploy.sh
-    - run: cd "$HOME/${PROJECT_SLUG:-my-project}" && docker compose exec -T web python scripts/ensure_superuser.py
     - wait_for: https://[exposed:8000]/health/
       timeout: 1200
     - run: cd "$HOME/${PROJECT_SLUG:-my-project}" && test ! -e .git && pwd -P

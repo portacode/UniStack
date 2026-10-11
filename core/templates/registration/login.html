@@ -1,2 +1,9 @@
-{% extends 'core/base.html' %}
-{% block content %}<div class="auth-page"><section class="auth-card"><div class="eyebrow">{{ brand.name }}</div><h1>Welcome back.</h1><p class="lead">Sign in to your workspace.</p><form method="post">{% csrf_token %}{% if form.errors %}<p class="form-error" role="alert">The username or password wasn’t recognized. Please try again.</p>{% endif %}<label for="id_username">Username</label><input id="id_username" name="username" autocomplete="username" required autofocus value="{{ form.username.value|default:'' }}"><label for="id_password">Password</label><input id="id_password" name="password" type="password" autocomplete="current-password" required><input type="hidden" name="next" value="{{ next }}"><button class="button primary" type="submit">Sign in</button></form><p class="auth-alternative">New here? <a href="{% url 'signup' %}">Create an account</a></p></section></div>{% endblock %}
+{% extends 'registration/auth_base.html' %}
+{% block auth_content %}<div class="eyebrow">GOOD TO SEE YOU AGAIN</div><h1>Welcome back.</h1><p class="lead">Pick up where you left off.</p>
+<form method="post">{% csrf_token %}{% if form.errors %}<p class="form-error" role="alert">The username or password wasn’t recognized. Please try again.</p>{% endif %}
+<label for="id_username">Username</label><input id="id_username" name="username" autocomplete="username" required value="{{ form.username.value|default:'' }}">
+<label for="id_password">Password</label><input id="id_password" name="password" type="password" autocomplete="current-password" required>
+<input type="hidden" name="next" value="{{ next }}"><button class="button primary" type="submit">Sign in <span aria-hidden="true">↗</span></button></form>
+{% if signup_enabled %}<p class="auth-alternative">New here? <a href="{% url 'signup' %}">Create an account</a></p>{% endif %}
+{% if guest_chat_enabled %}<a class="auth-guest-link" href="{% url 'assistant' %}">Or try the assistant first →</a>{% endif %}
+{% endblock %}

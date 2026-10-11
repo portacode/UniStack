@@ -1,4 +1,5 @@
 import json
+from pathlib import Path
 from django.conf import settings
 from django.db import connection
 from django.db import transaction
@@ -47,7 +48,8 @@ def protected_media(request, path):
 
 @ensure_csrf_cookie
 def home(request):
-    return render(request, "core/home.html", {"page_title": "Overview"})
+    marketing = json.loads((Path(settings.BASE_DIR) / "marketing.json").read_text()) if (Path(settings.BASE_DIR) / "marketing.json").exists() else {}
+    return render(request, "core/home.html", {"page_title": "Home", "marketing": marketing})
 
 
 @ensure_csrf_cookie

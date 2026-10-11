@@ -45,4 +45,16 @@ def get_brand():
 
 
 def context(request):
-    return {"brand": get_brand(), "site_navigation": settings.SITE_NAVIGATION}
+    navigation = []
+    for item in settings.SITE_NAVIGATION:
+        if item.get("authenticated") and not request.user.is_authenticated:
+            continue
+        entry = dict(item)
+        entry["active"] = request.path == item["url"] or (
+            item["url"] != "/" and request.path.startswith(item["url"].rstrip("/") + "/")
+        )
+        navigation.append(entry)
+    return {"brand": get_brand(), "site_navigation": navigation,
+            "mobile_bottom_nav": 0 < len(navigation) <= 5,
+            "signup_enabled": settings.UNISTACK_ALLOW_SIGNUP,
+            "guest_chat_enabled": settings.UNISTACK_ALLOW_ANONYMOUS_CHAT}

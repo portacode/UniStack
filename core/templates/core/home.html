@@ -1,6 +1,14 @@
 {% extends 'core/base.html' %}
-{% block content %}<div class="page-content">
-<div class="eyebrow">YOUR WORKSPACE</div><h1>Welcome{% if user.is_authenticated %}, {{ user.get_username }}{% endif %}.</h1><p class="lead">{{ brand.tagline }}</p>
-<section class="feature-card" aria-labelledby="assistant-heading"><div class="feature-copy"><span class="feature-icon" aria-hidden="true">✧</span><h2 id="assistant-heading">A little help. A clearer next step.</h2><p>Ask a question, explore an idea, or work through a task with your assistant.</p><a class="button primary" href="{% url 'assistant' %}" data-nav>Open assistant <span aria-hidden="true">↗</span></a></div><div class="feature-art" aria-hidden="true"><div class="art-orbit"></div><div class="art-center">✧</div><div class="art-note note-one">Make room for ideas</div><div class="art-note note-two">Find your next step</div></div></section>
-<section class="getting-started" aria-labelledby="getting-started-heading"><h2 id="getting-started-heading">Start with a conversation</h2><div class="starter-grid"><a href="{% url 'assistant' %}" data-nav class="starter-card"><span aria-hidden="true">01</span><h3>Explore an idea</h3><p>Turn a rough thought into a useful plan.</p></a><a href="{% url 'assistant' %}" data-nav class="starter-card"><span aria-hidden="true">02</span><h3>Work through a question</h3><p>Get another perspective on what matters.</p></a><a href="{% url 'assistant' %}" data-nav class="starter-card"><span aria-hidden="true">03</span><h3>Keep things moving</h3><p>Return to your conversations whenever you need.</p></a></div></section>
-</div>{% endblock %}
+{% block main_attributes %}class="marketing-page"{% endblock %}
+{% block content %}
+{# Starter marketing copy lives in marketing.json. Replace it with accurate product material before launch. #}
+<section class="marketing-hero">
+  <div class="hero-copy"><p class="eyebrow"><span class="eyebrow-dot"></span>{{ marketing.eyebrow }}</p><h1>{{ marketing.headline }}</h1><p class="hero-description">{{ marketing.description }}</p>
+    <div class="hero-actions">{% if user.is_authenticated or guest_chat_enabled %}<a class="button primary" href="{% url 'assistant' %}" data-nav>Open assistant <span aria-hidden="true">↗</span></a>{% elif signup_enabled %}<a class="button primary" href="{% url 'signup' %}">Get started <span aria-hidden="true">↗</span></a>{% else %}<a class="button primary" href="{% url 'login' %}">Sign in <span aria-hidden="true">↗</span></a>{% endif %}<a class="button quiet" href="#possibilities">Take a closer look <span aria-hidden="true">↓</span></a></div>
+    <p class="hero-footnote">{% if guest_chat_enabled %}Start a conversation. No account needed.{% else %}Your own space to think, create, and move forward.{% endif %}</p>
+  </div>{% include 'core/product-art.html' %}
+</section>
+<section class="marketing-features" id="possibilities" aria-labelledby="features-title"><div class="section-intro"><p class="eyebrow">A BETTER EVERYDAY</p><h2 id="features-title">Less friction.<br>More forward.</h2></div><div class="feature-columns">{% for feature in marketing.features %}<article><span class="feature-number">0{{ forloop.counter }}</span><h3>{{ feature.title }}</h3><p>{{ feature.description }}</p></article>{% endfor %}</div></section>
+<section class="marketing-closing"><div><p class="eyebrow">MAKE SPACE FOR WHAT'S NEXT</p><h2>{{ marketing.closing_title }}</h2><p>{{ marketing.closing_description }}</p></div><a class="button primary" href="{% url 'assistant' %}" data-nav>Explore the assistant <span aria-hidden="true">↗</span></a></section>
+<footer class="marketing-footer"><span>{{ brand.name }}</span><span>{{ brand.tagline }}</span></footer>
+{% endblock %}

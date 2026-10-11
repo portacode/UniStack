@@ -16,4 +16,10 @@ if [ ! -f .env ]; then
 fi
 python3 scripts/configure_env.py .env
 python3 scripts/configure_branding.py
-docker compose up -d --build --wait --wait-timeout 180
+# Preflight the built image before replacing a healthy web/worker deployment.
+docker compose build web worker
+docker compose up -d --wait --wait-timeout 90 db redis
+docker compose run --rm -T --no-deps --entrypoint sh web -c \
+    'python manage.py check && python manage.py makemigrations --check --dry-run'
+docker compose up -d --no-build --wait --wait-timeout 180 web worker
+docker compose exec -T web python manage.py check_site

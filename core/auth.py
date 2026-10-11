@@ -1,5 +1,7 @@
 """Public account creation using Django's password and session protections."""
 from django import forms
+from django.conf import settings
+from django.http import Http404
 from django.contrib.auth import get_user_model, login
 from django.contrib.auth.forms import UserCreationForm
 from django.shortcuts import redirect, render
@@ -22,6 +24,8 @@ class SignupForm(UserCreationForm):
 
 @require_http_methods(["GET", "POST"])
 def signup(request):
+    if not settings.UNISTACK_ALLOW_SIGNUP:
+        raise Http404("Registration is not available")
     if request.user.is_authenticated:
         return redirect("assistant")
     form = SignupForm(request.POST or None)
