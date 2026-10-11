@@ -10,7 +10,11 @@ menu.addEventListener('click', () => {
   menu.setAttribute('aria-expanded', String(open));
   document.querySelector('.site-sidebar').classList.toggle('menu-open', open);
 });
-document.addEventListener('keydown', event => { if (event.key === 'Escape') closeMenu(); });
+document.addEventListener('keydown', event => {
+  if (event.key === 'Escape' && menu.getAttribute('aria-expanded') === 'true') {
+    closeMenu(); menu.focus();
+  }
+});
 
 async function mount(main) {
   if (!main.dataset.pageModule) return;

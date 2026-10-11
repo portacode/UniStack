@@ -87,6 +87,51 @@ class AnonymousChatTests(TestCase):
             other_user.save(update_fields=["is_staff"])
             self.assertEqual(stranger.get(message.media.url).status_code, 200)
 
+    def test_signup_transfers_only_current_guest_history_and_attachments(self):
+        with tempfile.TemporaryDirectory() as media_root, override_settings(MEDIA_ROOT=media_root):
+            sent = self.send()
+            other = Client()
+            other_chat = self.send(other)
+            old_key = self.client.session.session_key
+            message = Message.objects.get(pk=sent["message_id"])
+            message.media.save("signup.txt", SimpleUploadedFile("signup.txt", b"private attachment"))
+            response = self.client.post("/accounts/signup/", {
+                "username": "new-reader", "email": "reader@example.invalid",
+                "password1": "Cedar-river-lantern-73", "password2": "Cedar-river-lantern-73",
+            })
+            self.assertRedirects(response, "/assistant/")
+            user = get_user_model().objects.get(username="new-reader")
+            self.assertFalse(user.is_staff)
+            self.assertNotEqual(old_key, self.client.session.session_key)
+            self.assertFalse(Account.objects.filter(pk=f"webchat_guest_{old_key}").exists())
+            self.assertEqual(Request.objects.get(message_id=sent["message_id"]).account_id, f"webchat_user_{user.pk}")
+            self.assertEqual(self.client.get(message.media.url).status_code, 200)
+            self.assertEqual(other.get(message.media.url).status_code, 404)
+            self.assertEqual(self.client.get("/unicom/webchat/messages/", {"chat_id": sent["chat_id"]}).status_code, 200)
+            self.assertEqual(self.client.get("/unicom/webchat/messages/", {"chat_id": other_chat["chat_id"]}).status_code, 404)
+            self.client.post("/accounts/logout/")
+            self.assertEqual(self.client.get(message.media.url).status_code, 404)
+            self.client.post("/accounts/login/", {"username": "new-reader", "password": "Cedar-river-lantern-73"})
+            self.assertEqual(self.client.get(message.media.url).status_code, 200)
+
+    def test_signup_rejects_weak_password_and_requires_csrf(self):
+        response = self.client.post("/accounts/signup/", {
+            "username": "weak-reader", "email": "weak@example.invalid",
+            "password1": "123", "password2": "123",
+        })
+        self.assertContains(response, "too short")
+        self.assertFalse(get_user_model().objects.filter(username="weak-reader").exists())
+        self.assertEqual(Client(enforce_csrf_checks=True).post("/accounts/signup/", {}).status_code, 403)
+
+    def test_signup_rejects_existing_email_case_insensitively(self):
+        get_user_model().objects.create_user("existing", email="reader@example.invalid")
+        response = self.client.post("/accounts/signup/", {
+            "username": "duplicate", "email": "READER@example.invalid",
+            "password1": "Cedar-river-lantern-73", "password2": "Cedar-river-lantern-73",
+        })
+        self.assertContains(response, "already uses this email")
+        self.assertFalse(get_user_model().objects.filter(username="duplicate").exists())
+
     def test_non_chat_media_requires_an_application_owned_download_route(self):
         with tempfile.TemporaryDirectory() as media_root, override_settings(MEDIA_ROOT=media_root):
             Path(media_root, "crm-file.txt").write_text("CRM document")

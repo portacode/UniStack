@@ -57,6 +57,21 @@ with dimensions and `loading="lazy"` when below the fold.
 
 ## First-build acceptance
 
+### Guest access and conversion
+
+The deployment form's **Let visitors try AI chat before signing up** switch
+sets `UNISTACK_ALLOW_ANONYMOUS_CHAT`. Enabled: visitors can start immediately,
+then use `/accounts/signup/` or sign in to keep their conversations. Disabled:
+the assistant requires an account. This controls chat access, not permission
+to application data. Keep private document retrieval separately authorized.
+
+The built-in signup uses Django password validation and automatic login.
+Both signup and login transfer conversations and attachments from the current
+browser's guest session into the account, including queued requests. Other
+guest sessions remain isolated. Signup does not verify email ownership; add
+email verification before using an address as a trusted identity or invitation.
+Preserve the login signal and session middleware when adding custom signup.
+
 ### Container development loop
 
 The running containers use the built image, not source edits in the project
@@ -64,10 +79,9 @@ folder. After adding dependencies, build the image once. Then validate edits
 through a source mount without repeatedly replacing the running app:
 
 ```sh
-docker compose run --rm --no-deps -v "$PWD:/app" --entrypoint python web manage.py makemigrations core
-docker compose run --rm --no-deps -v "$PWD:/app" --entrypoint python web manage.py makemigrations --check --dry-run
-docker compose run --rm --no-deps -v "$PWD:/app" --entrypoint python web manage.py check
-docker compose run --rm --no-deps -v "$PWD:/app" --entrypoint python web manage.py test core --noinput
+./scripts/check.sh --migrations core
+./scripts/check.sh
+./scripts/deploy.sh
 ```
 
 Generate migrations with Django, including its index names; never hand-write
@@ -76,6 +90,12 @@ as the checkout's owner when necessary to avoid root-owned generated files.
 Once checks pass, use `./scripts/deploy.sh` to rebuild and wait for healthy
 services, then run the live UI tests. Routine source edits do not require
 `docker compose down` or `up --force-recreate` for the whole stack.
+The check script checks memory headroom, bounds execution to five minutes,
+and removes its own temporary container on exit. It runs checks, migration
+drift detection and tests against edited source. Pass app/test labels to scope
+tests. Do not recreate the deployment setup or run raw Compose commands for
+routine edits. Use Compose directly only for a diagnosed infrastructure issue
+or rebuilding an image after changing dependencies.
 
 ### Ground the actual chat UI
 

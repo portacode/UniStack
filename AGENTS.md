@@ -29,6 +29,9 @@ not a UniStack demo. Read `docs/application-guide.md` before customization.
   hand-write migration files or index names. Check migration drift before
   deploying. See the container development loop in `docs/application-guide.md`.
 - Test source changes in a one-off container before rebuilding the live app.
+  Use `./scripts/check.sh` (or `./scripts/check.sh --migrations core` to
+  generate migrations), then `./scripts/deploy.sh`. Do not reimplement setup
+  or repeatedly issue manual Compose commands for routine customization.
   Recreate only changed services; repeatedly forcing the entire Compose stack
   to recreate interrupts the database and makes browser verification unreliable.
 - Do not deploy changes by restarting the host Portacode service. Use the

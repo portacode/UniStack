@@ -36,10 +36,10 @@ inputs:
     default: '#0f766e'
   - id: unistack_allow_anonymous_chat
     type: boolean
-    label: Anonymous visitors can access AI chat
+    label: Let visitors try AI chat before signing up
     required: false
     default: true
-    description: Let visitors chat immediately. AI usage is charged to your connected Portacode account. Turn off to require sign-in.
+    description: When enabled, visitors can chat without an account and their conversations transfer when they sign up or sign in from the same browser. Turn off to require sign-in. AI usage is charged to your connected Portacode account.
   - id: project_slug
     type: text
     label: Project name
