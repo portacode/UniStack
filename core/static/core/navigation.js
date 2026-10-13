@@ -48,19 +48,23 @@ async function navigate(url, push = true) {
     if (!response.ok || response.redirected) { location.assign(response.url || url); return; }
     const doc = new DOMParser().parseFromString(await response.text(), 'text/html');
     const next = doc.getElementById('main-content');
-    if (!next) { location.assign(url); return; }
     if (current !== sequence) return;
+    const nextNavigation = doc.getElementById('site-navigation');
+    if (!next || !nextNavigation) { location.assign(url); return; }
     cleanup(); cleanup = () => {};
     oldMain.replaceWith(next);
     skeleton.hidden = true;
     document.title = doc.title;
     document.getElementById('page-label').textContent = next.dataset.pageTitle || '';
     if (push) history.pushState({}, '', url);
-    for (const link of document.querySelectorAll('#site-navigation a')) {
-      const path = new URL(link.href).pathname;
-      if (path === location.pathname || (path !== '/' && location.pathname.startsWith(path.replace(/\/$/, '') + '/'))) link.setAttribute('aria-current', 'page');
-      else link.removeAttribute('aria-current');
+    // The server owns visibility, labels and active matching. Keep the nav
+    // element itself stable, updating its children only when they change.
+    const navigation = document.getElementById('site-navigation');
+    if (navigation.innerHTML !== nextNavigation.innerHTML) {
+      navigation.replaceChildren(...nextNavigation.childNodes);
     }
+    document.body.classList.toggle('mobile-tabs', doc.body.classList.contains('mobile-tabs'));
+    document.body.classList.toggle('mobile-menu', doc.body.classList.contains('mobile-menu'));
     status.textContent = '';
     window.scrollTo(0, 0);
     next.focus({preventScroll: true});

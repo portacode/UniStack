@@ -1,0 +1,9 @@
+{% extends 'core/base.html' %}{% load static %}
+{% block main_attributes %}class="product-page" {% if page_module %}data-page-module="{% static page_module %}"{% endif %}{% endblock %}
+{% block content %}
+<section class="page-content">
+  <header class="product-page-heading"><div>{% block page_heading %}<h1>{{ page_title }}</h1>{% if page_description %}<p>{{ page_description }}</p>{% endif %}{% endblock %}</div><div class="product-page-actions">{% block page_actions %}{% endblock %}</div></header>
+  {% if messages %}<div class="product-page-messages" role="status">{% for message in messages %}<p>{{ message }}</p>{% endfor %}</div>{% endif %}
+  {% block page_content %}{% endblock %}
+</section>
+{% endblock %}

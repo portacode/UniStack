@@ -29,18 +29,69 @@ history as well as the website; the internal channel ID stays stable.
 ## Add a product page
 
 1. Add a view in your application and a normal URL, e.g. `/documents/`.
-2. Extend `core/base.html`, supply `page_title` in the view context, and put
-   content inside `{% block content %}`. Add the route to `SITE_NAVIGATION`.
+2. Extend `core/page.html`, supply `page_title` in the view context, and put
+   content inside `{% block page_content %}`. It supplies the page heading,
+   spacing, messages and an optional `page_actions` block inside the shared shell.
+   Add the route to `SITE_NAVIGATION`; the same entries appear on chat and auth pages.
 3. Use `data-nav` on internal links that can use enhanced navigation. Leave
    login, logout, downloads, external URLs and links needing a full reload alone.
-4. Optional JavaScript goes in a separate ES module, referenced with
-   `{% block main_attributes %}data-page-module="{% static 'myapp/documents.js' %}"{% endblock %}`.
+4. Optional JavaScript goes in a separate ES module. Set `page_module` in the
+   view context to `myapp/documents.js` when using `core/page.html`.
    Export `mount(main)` and scope selectors to `main`. Return a cleanup function.
    Scripts inside page content are intentionally not evaluated on navigation.
 5. Use the shared `.button.primary`, `.button.secondary`, `.button.quiet`,
-   `.page-content`, and brand variables. Add feature styles to a stylesheet
-   loaded by the base template; page-local head blocks are only loaded on a
-full page visit. Do not require navigation to inject scripts/styles.
+   `.page-content`, and brand variables. Register feature CSS in `SITE_STYLESHEETS`
+   so it is available after navigating from any page. Scope it to a feature
+   container (e.g. `.documents`) so it cannot restyle the navbar or assistant.
+
+For a custom page layout, extend `core/base.html` and replace its `content` and
+`main_attributes` blocks. Keep the outer shell. For custom navigation icons,
+use an `icon_template` containing an SVG with class `nav-symbol`, `viewBox`,
+`aria-hidden="true"` and `currentColor`. Do not create a second mobile navbar.
+
+Example product page:
+
+```django
+{% extends 'core/page.html' %}
+{% block page_actions %}<a class="button primary" href="/documents/new/" data-nav>Add document</a>{% endblock %}
+{% block page_content %}<div class="documents">Your product content and forms</div>{% endblock %}
+```
+
+Configure its routes in the normal Django URLconf and its navigation in settings:
+
+```python
+SITE_NAVIGATION = [
+    {"label": "Home", "url": "/", "icon": "overview"},
+    {"label": "Documents", "mobile_label": "Files", "url": "/documents/",
+     "icon": "documents", "authenticated": True},
+    {"label": "Add document", "mobile_label": "Add", "url": "/documents/new/",
+     "icon": "upload", "authenticated": True},
+    {"label": "Assistant", "url": "/assistant/", "icon": "assistant"},
+]
+SITE_STYLESHEETS = ["documents/documents.css"]
+```
+
+Labels, order, icons, routes and mobile labels are customizable in one place.
+In a stylesheet registered in `SITE_STYLESHEETS`, adjust `--sidebar-width`,
+`--nav-item-radius` and `--mobile-nav-height` to change the shared navigation's
+geometry; brand colors continue to come from `branding.json`. The mobile bar's
+safe-area padding and the assistant's available height follow the same variables.
+Only the most specific matching destination is active, so Add does not also
+highlight Documents. Use `exact: True` for overview routes and `match: ["/other/"]`
+to associate other detail routes with a destination. `full_reload: True` opts a
+destination out of enhanced navigation for pages requiring a full reload.
+`authenticated` controls visibility, not authorization: protect the Django view
+as well. Keep mobile labels short; the full label remains the accessible name.
+
+`check_site` validates the same shell and navigation on public destinations,
+marketing, authentication and chat. It fails on a missing/replaced shell or a
+separate navigation definition. It also discovers static routes in installed
+project apps, so omitting a product page from navigation does not hide a second
+shell. Parameterized detail routes still need product-specific tests. Before delivery, run
+`docker compose exec -T web python manage.py check_site --username <test-account>`
+to include private product routes using an existing test account. It signs in a
+temporary test-client session and signs out afterward, without creating a user.
+The deployment preflight runs the public checks before replacing the live app.
 
 ### Product presentation
 

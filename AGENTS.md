@@ -5,6 +5,9 @@ not a UniStack demo. Read `docs/application-guide.md` before customization.
 
 - Preserve `core/templates/core/base.html`, the responsive navigation and page
   module lifecycle. Extend the shell for product pages instead of replacing it.
+  Use `core/page.html` for product layouts, `SITE_NAVIGATION` for all destinations,
+  and `SITE_STYLESHEETS` for scoped feature CSS; validate private routes with
+  `python manage.py check_site --username <test-account>` in the app container.
 - Set `branding.json` once. Website, sign-in and assistant share its name, logo
   and colors. Never scatter branding values through templates or upstream apps.
 - Keep `/` as the product marketing home. Replace `marketing.json`, the

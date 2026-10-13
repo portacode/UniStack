@@ -108,3 +108,7 @@ SITE_NAVIGATION = [
     {"label": "Home", "url": "/", "icon": "overview"},
     {"label": "Assistant", "url": "/assistant/", "icon": "assistant"},
 ]
+
+# Feature CSS is loaded on every route, including direct chat/auth visits.
+# Scope product rules to their page container, not the shared shell.
+SITE_STYLESHEETS = []
