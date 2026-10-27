@@ -18,9 +18,12 @@ export async function mount(main) {
   const {applyChatTheme} = await import('./chat-theme.js');
   if (!main.isConnected) return;
   const removeTheme = applyChatTheme(chat);
+  // Initial mount only: sidebar reconciliation must not cover a live chat.
+  let initialized = false;
   const updateLoading = () => {
-    loading.hidden = !chat.loading && !chat.loadingChats;
-    chat.setAttribute('aria-busy', String(!loading.hidden));
+    if (!chat.loading && !chat.loadingChats) initialized = true;
+    loading.hidden = initialized;
+    chat.setAttribute('aria-busy', String(!initialized));
   };
   updateLoading();
   const loadingTimer = setInterval(updateLoading, 100);
